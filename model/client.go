@@ -2,7 +2,8 @@ package model
 
 import (
 	"github.com/integration-system/isp-lib/database"
-	"github.com/integration-system/isp-lib/logger"
+	log "github.com/integration-system/isp-log"
+	"github.com/integration-system/isp-log/stdcodes"
 )
 
 var (
@@ -11,7 +12,9 @@ var (
 		database.WithSchemaAutoInjecting(),
 		database.WithMigrationsEnsuring(),
 		database.WithInitializingErrorHandler(func(err *database.ErrorEvent) {
-			logger.Fatal(err)
+			log.WithMetadata(map[string]interface{}{
+				"message": err.Error(),
+			}).Fatal(stdcodes.InitializingDbError, "error when initializing db connection")
 		}),
 	)
 	ObjectRep = ObjectRepository{DbClient}

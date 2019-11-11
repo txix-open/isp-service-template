@@ -5,8 +5,9 @@ import (
 	"github.com/integration-system/isp-lib/backend"
 	"github.com/integration-system/isp-lib/bootstrap"
 	"github.com/integration-system/isp-lib/config/schema"
-	"github.com/integration-system/isp-lib/logger"
 	"github.com/integration-system/isp-lib/structure"
+	log "github.com/integration-system/isp-log"
+	"github.com/integration-system/isp-log/stdcodes"
 	"msp-service-template/conf"
 	"msp-service-template/helper"
 	"msp-service-template/model"
@@ -18,6 +19,14 @@ var (
 	date    = "undefined"
 )
 
+// @title {название сервиса}
+// @version 1.0.0
+// @description {описание сервиса}
+
+// @license.name GNU GPL v3.0
+
+// @host localhost:9000
+// @BasePath /api/msp-service
 func main() {
 	bootstrap.
 		ServiceBootstrap(&conf.Configuration{}, &conf.RemoteConfig{}).
@@ -55,11 +64,13 @@ func onRemoteConfigReceive(remoteConfig, oldConfig *conf.RemoteConfig) {
 }
 
 func onRemoteErrorReceive(errorMessage map[string]interface{}) {
-	logger.Warn(errorMessage)
+	log.WithMetadata(errorMessage).Error(stdcodes.ReceiveErrorFromConfig, "error from config service")
 }
 
 func onRemoteConfigErrorReceive(errorMessage string) {
-	logger.Error(errorMessage)
+	log.WithMetadata(map[string]interface{}{
+		"message": errorMessage,
+	}).Error(stdcodes.ReceiveErrorOnGettingConfigFromConfig, "error on getting remote configuration")
 }
 
 func onLocalConfigLoad(cfg *conf.Configuration) {
