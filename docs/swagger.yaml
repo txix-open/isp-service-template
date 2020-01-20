@@ -1,0 +1,51 @@
+basePath: /api/msp-service TODO
+definitions:
+  shared.ObjectDomain:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  structure.GrpcError:
+    properties:
+      details:
+        items:
+          type: object
+        type: array
+      errorCode:
+        type: string
+      errorMessage:
+        type: string
+    type: object
+host: localhost:9000
+info:
+  contact: {}
+  description: '{описание сервиса}'
+  license:
+    name: GNU GPL v3.0
+  title: '{название сервиса}'
+  version: 1.0.0
+paths:
+  /objects/get_all:
+    post:
+      consumes:
+      - application/json
+      description: '{описание метода}'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/shared.ObjectDomain'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/structure.GrpcError'
+      summary: '{название метода}'
+      tags:
+      - '{название группы методов}'
+swagger: "2.0"

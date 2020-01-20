@@ -17,5 +17,5 @@ var (
 			}).Fatal(stdcodes.InitializingDbError, "error when initializing db connection")
 		}),
 	)
-	ObjectRep = ObjectRepository{DbClient}
+	ObjectRep = ObjectRepository{client: DbClient}
 )

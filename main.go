@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"os"
+
 	"github.com/integration-system/isp-lib/backend"
 	"github.com/integration-system/isp-lib/bootstrap"
 	"github.com/integration-system/isp-lib/config/schema"
@@ -11,14 +13,13 @@ import (
 	"msp-service-template/conf"
 	"msp-service-template/helper"
 	"msp-service-template/model"
-	"os"
 )
 
 var (
 	version = "0.1.0"
-	date    = "undefined"
 )
 
+// TODO
 // @title {название сервиса}
 // @version 1.0.0
 // @description {описание сервиса}
@@ -26,7 +27,10 @@ var (
 // @license.name GNU GPL v3.0
 
 // @host localhost:9000
-// @BasePath /api/msp-service
+// @BasePath /api/msp-service TODO
+
+//go:generate swag init --parseDependency
+//go:generate rm -f docs/docs.go docs/swagger.json
 func main() {
 	bootstrap.
 		ServiceBootstrap(&conf.Configuration{}, &conf.RemoteConfig{}).
@@ -59,7 +63,7 @@ func onShutdown(_ context.Context, _ os.Signal) {
 	_ = model.DbClient.Close()
 }
 
-func onRemoteConfigReceive(remoteConfig, oldConfig *conf.RemoteConfig) {
+func onRemoteConfigReceive(remoteConfig, _ *conf.RemoteConfig) {
 	model.DbClient.ReceiveConfiguration(remoteConfig.Database)
 }
 
@@ -74,17 +78,18 @@ func onRemoteConfigErrorReceive(errorMessage string) {
 }
 
 func onLocalConfigLoad(cfg *conf.Configuration) {
-	handlers := helper.GetAllHandlers()
-	service := backend.GetDefaultService(cfg.ModuleName, handlers...)
+	endpoints := helper.GetAllEndpoints(cfg.ModuleName)
+	service := backend.NewDefaultService(endpoints)
 	backend.StartBackendGrpcServer(cfg.GrpcInnerAddress, service)
 }
 
 func makeDeclaration(localConfig interface{}) bootstrap.ModuleInfo {
 	cfg := localConfig.(*conf.Configuration)
+	endpoints := helper.GetAllEndpoints(cfg.ModuleName)
 	return bootstrap.ModuleInfo{
 		ModuleName:       cfg.ModuleName,
 		ModuleVersion:    version,
 		GrpcOuterAddress: cfg.GrpcOuterAddress,
-		Handlers:         helper.GetAllHandlers(),
+		Endpoints:        endpoints,
 	}
 }
