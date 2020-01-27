@@ -7,5 +7,5 @@ grpcOuterAddress:
 grpcInnerAddress:
   ip: 0.0.0.0
   port: 9xxx
-moduleName: msp-service
+moduleName: msp-service # TODO
 instanceUuid: ec183598-746a-425f-b5e5-27b7fa8bc6af

@@ -13,6 +13,7 @@ type objectImpl struct {
 }
 
 // GetAll godoc
+// @Tags {название группы методов}
 // @Summary {название метода}
 // @Description {описание метода}
 // @Accept json
