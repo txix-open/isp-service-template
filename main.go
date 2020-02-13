@@ -4,10 +4,10 @@ import (
 	"context"
 	"os"
 
-	"github.com/integration-system/isp-lib/backend"
-	"github.com/integration-system/isp-lib/bootstrap"
-	"github.com/integration-system/isp-lib/config/schema"
-	"github.com/integration-system/isp-lib/structure"
+	"github.com/integration-system/isp-lib/v2/backend"
+	"github.com/integration-system/isp-lib/v2/bootstrap"
+	"github.com/integration-system/isp-lib/v2/config/schema"
+	"github.com/integration-system/isp-lib/v2/structure"
 	log "github.com/integration-system/isp-log"
 	"github.com/integration-system/isp-log/stdcodes"
 	"msp-service-template/conf"
@@ -79,8 +79,8 @@ func onRemoteConfigErrorReceive(errorMessage string) {
 
 func onLocalConfigLoad(cfg *conf.Configuration) {
 	endpoints := helper.GetAllEndpoints(cfg.ModuleName)
-	service := backend.NewDefaultService(endpoints)
-	backend.StartBackendGrpcServer(cfg.GrpcInnerAddress, service)
+	grpcService := backend.NewDefaultService(endpoints)
+	backend.StartBackendGrpcServer(cfg.GrpcInnerAddress, grpcService)
 }
 
 func makeDeclaration(localConfig interface{}) bootstrap.ModuleInfo {
