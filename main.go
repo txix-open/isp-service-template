@@ -7,10 +7,12 @@ import (
 	"github.com/integration-system/isp-lib/v2/backend"
 	"github.com/integration-system/isp-lib/v2/bootstrap"
 	"github.com/integration-system/isp-lib/v2/config/schema"
+	"github.com/integration-system/isp-lib/v2/metric"
 	"github.com/integration-system/isp-lib/v2/structure"
 	log "github.com/integration-system/isp-log"
 	"github.com/integration-system/isp-log/stdcodes"
 	"msp-service-template/conf"
+	_ "msp-service-template/docs"
 	"msp-service-template/helper"
 	"msp-service-template/model"
 )
@@ -30,7 +32,7 @@ var (
 // @BasePath /api/msp-service TODO
 
 //go:generate swag init --parseDependency
-//go:generate rm -f docs/docs.go docs/swagger.json
+//go:generate rm -f docs/swagger.json
 func main() {
 	bootstrap.
 		ServiceBootstrap(&conf.Configuration{}, &conf.RemoteConfig{}).
@@ -65,6 +67,7 @@ func onShutdown(_ context.Context, _ os.Signal) {
 
 func onRemoteConfigReceive(remoteConfig, _ *conf.RemoteConfig) {
 	model.DbClient.ReceiveConfiguration(remoteConfig.Database)
+	metric.InitHttpServer(remoteConfig.Metrics)
 }
 
 func onRemoteErrorReceive(errorMessage map[string]interface{}) {

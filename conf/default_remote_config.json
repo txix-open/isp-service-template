@@ -7,5 +7,14 @@
     "password": "password",
     "username": "example",
     "createSchema": true
+  },
+  "metrics": {
+    "gc": true,
+    "memory": true,
+    "address": {
+      "ip": "0.0.0.0",
+      "path": "/metrics",
+      "port": "9456"
+    }
   }
 }

@@ -5,5 +5,6 @@ import (
 )
 
 type RemoteConfig struct {
-	Database structure.DBConfiguration `valid:"required~Required" schema:"Database"`
+	Database structure.DBConfiguration     `valid:"required~Required" schema:"Database"`
+	Metrics  structure.MetricConfiguration `schema:"Настройка метрик"`
 }
