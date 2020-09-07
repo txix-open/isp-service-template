@@ -42,6 +42,7 @@ func main() {
 		OnSocketErrorReceive(onRemoteErrorReceive).
 		OnConfigErrorReceive(onRemoteConfigErrorReceive).
 		DeclareMe(makeDeclaration).
+		/**- create "requires" **/
 		OnRemoteConfigReceive(onRemoteConfigReceive).
 		OnShutdown(onShutdown).
 		Run()
