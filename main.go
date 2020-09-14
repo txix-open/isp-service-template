@@ -14,6 +14,7 @@ import (
 	"msp-service-template/conf"
 	_ "msp-service-template/docs"
 	"msp-service-template/helper"
+	"msp-service-template/invoker"
 	"msp-service-template/model"
 )
 
