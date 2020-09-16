@@ -7,6 +7,10 @@ import (
 
 func GetAllEndpoints(moduleName string) []structure.EndpointDescriptor {
 	return structure.DescriptorsWithPrefix(moduleName, []structure.EndpointDescriptor{
+		//> UNCOMMENT BELOW LINE - IF YOU DON'T USE msp-ctl generation tools
 		{Path: "objects/get_all", Handler: controller.ObjectController.GetAll},
+		//<
+
+		/**- create "endpoints" **/
 	})
 }

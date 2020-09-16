@@ -17,5 +17,8 @@ var (
 			}).Fatal(stdcodes.InitializingDbError, "error when initializing db connection")
 		}),
 	)
+	//> UNCOMMENT BELOW LINE - IF YOU DON'T USE msp-ctl generation tools
 	ObjectRep = ObjectRepository{client: DbClient}
+	//<
+	/**- create "repos" **/
 )
