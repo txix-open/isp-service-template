@@ -6,6 +6,6 @@ import (
 
 type Object struct {
 	//nolint
-	tableName string `pq:"?db_schema.objects" json:"-"`
+	tableName string `pg:"?db_schema.objects" json:"-"`
 	shared.ObjectDomain
 }

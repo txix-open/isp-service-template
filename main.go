@@ -29,7 +29,8 @@ var (
 // @license.name GNU GPL v3.0
 
 // @host localhost:9000
-// @BasePath /api/msp-service TODO
+// TODO
+// @BasePath /api/msp-service
 
 //go:generate swag init --parseDependency
 //go:generate rm -f docs/swagger.json
