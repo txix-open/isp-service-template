@@ -11,7 +11,6 @@ linters:
     - goconst
     - gocritic
     - gocyclo
-    - goerr113
     - gofmt
     - gomnd
     - goprintffuncname
@@ -33,14 +32,9 @@ linters:
     - gosec
     - misspell
     - whitespace
-
-    - exhaustive #смотрит на соответствие между элементами enum и swich кейсами
+    - exhaustive    #смотрит на соответствие между элементами enum и swich кейсами
     - exportloopref #for _,p := []int{1, 2, 3} { s.Bar(&p) /* If s stores the pointer, it will be bug.*/ }
-    - noctx #finds sending http request without context.Context
     - sqlclosecheck # Checks that sql.Rows and sql.Stmt are closed.
-
-    - nlreturn #checks for a new line before return and branch statements to increase code clarity
-
 linters-settings:
   maligned:
     suggest-new: true
@@ -62,7 +56,6 @@ linters-settings:
     enabled-tags:
       - diagnostic
       - performance
-
 #issues:
 #  exclude-rules:
 #    - path: _test\.go # to exclude all test files for linter errcheck
