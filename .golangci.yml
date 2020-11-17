@@ -34,7 +34,6 @@ linters:
     - misspell
     - whitespace
 
-
     #  automatically disabled:
     #    - depguard # не используется
     #    - gochecknoglobals
@@ -51,6 +50,7 @@ linters:
     #    - lll # много спорных ситуаций
     #    - testpackage #все тесты должны быть в пакете с суффиксом _test
     ###############################
+    
     #в новой версии:
     #enable:
     #- errorlint
@@ -59,10 +59,7 @@ linters:
     #- nlreturn #checks for a new line before return and branch statements to increase code clarity
     #- noctx #finds sending http request without context.Context
     #- sqlclosecheck # Checks that sql.Rows and sql.Stmt are closed.
-
-    #may be enable:
     #- gofunpt #https://github.com/mvdan/gofumpt
-    #-tparallel # https://github.com/moricho/tparallel
 
     #must be disable
     #- goheader # Добавление хедера с лицензией(
@@ -70,6 +67,7 @@ linters:
     #- gci #что-то вроде goimports
     #- interfacer # DEPRECATED ()
     #- scopelint #OBSOLETED
+    #-tparallel # https://github.com/moricho/tparallel
 ###############################
 
 linters-settings:
