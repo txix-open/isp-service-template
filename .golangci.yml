@@ -30,12 +30,10 @@ linters:
     - unparam
     - unused
     - varcheck
+    - gosec
+    - misspell
+    - whitespace
 
-    #может быть отключено
-    - gosec # кроме глупых проверок комментариев наверно все же может что-то подсказать: Оставить?
-    - misspell # Finds commonly misspelled English words in comments: Лишнее?
-    - testpackage #все тесты должны быть в пакете с суффиксом _test
-    - whitespace #лишние пробелы и ньюлайны
 
     #  automatically disabled:
     #    - depguard # не используется
@@ -51,7 +49,7 @@ linters:
     #    - godot #проверка на точку в конце коммента
     #    - gomodguard # Имеет смысл только при настройке, и нам наверно не нужно https://github.com/ryancurrah/gomodguard
     #    - lll # много спорных ситуаций
-
+    #    - testpackage #все тесты должны быть в пакете с суффиксом _test
     ###############################
     #в новой версии:
     #enable:
@@ -101,7 +99,6 @@ linters-settings:
 
 #issues:
 #  exclude-rules:
-
 #    - path: _test\.go # to exclude all test files for linter errcheck
 #      linters:
 #        - errcheck
