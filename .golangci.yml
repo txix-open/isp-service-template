@@ -38,9 +38,6 @@ linters:
 linters-settings:
   maligned:
     suggest-new: true
-  lll:
-    line-length: 140
-    tab-width: 1
   funlen:
     lines: 80
     statements: 40
@@ -56,6 +53,10 @@ linters-settings:
     enabled-tags:
       - diagnostic
       - performance
+    disabled-checks:
+      - hugeParam
+      - rangeValCopy
+
 #issues:
 #  exclude-rules:
 #    - path: _test\.go # to exclude all test files for linter errcheck
