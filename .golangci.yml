@@ -1,3 +1,6 @@
+run:
+  timeout: 2m
+
 linters:
   disable-all: true
   enable:
@@ -57,8 +60,8 @@ linters-settings:
       - hugeParam
       - rangeValCopy
 
-#issues:
-#  exclude-rules:
-#    - path: _test\.go # to exclude all test files for linter errcheck
-#      linters:
-#        - errcheck
+issues:
+  exclude-rules:
+    - path: _test\.go # to exclude all test files for linter errcheck
+      linters:
+        - errcheck
