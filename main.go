@@ -56,8 +56,7 @@ func socketConfiguration(cfg interface{}) structure.SocketConfiguration {
 		Port:   appConfig.ConfigServiceAddress.Port,
 		Secure: false,
 		UrlParams: map[string]string{
-			"module_name":   appConfig.ModuleName,
-			"instance_uuid": appConfig.InstanceUuid,
+			"module_name": appConfig.ModuleName,
 		},
 	}
 }
