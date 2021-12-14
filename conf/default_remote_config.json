@@ -1,20 +1,11 @@
 {
   "database": {
+    "host": "{{ msp_pgsql_address }}",
     "port": "5432",
-    "schema": "msp_service",
-    "address": "127.0.0.1",
-    "database": "example",
-    "password": "password",
-    "username": "example",
-    "createSchema": true
+    "schema": "msp_service_template",
+    "database": "{{ msp_pgsql_name }}",
+    "username": "{{ msp_pgsql_user }}",
+    "password": "{{ msp_pgsql_password }}"
   },
-  "metrics": {
-    "gc": true,
-    "memory": true,
-    "address": {
-      "ip": "0.0.0.0",
-      "path": "/metrics",
-      "port": "9456"
-    }
-  }
+  "logLevel": "debug"
 }
