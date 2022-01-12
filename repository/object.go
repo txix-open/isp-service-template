@@ -1,4 +1,4 @@
-package object
+package repository
 
 import (
 	"context"
@@ -8,20 +8,21 @@ import (
 	"github.com/integration-system/isp-kit/db"
 	"github.com/integration-system/isp-kit/db/query"
 	"github.com/pkg/errors"
+	"msp-service-template/entity"
 )
 
-type repository struct {
+type Object struct {
 	db db.DB
 }
 
-func NewRepository(db db.DB) repository {
-	return repository{
+func NewObject(db db.DB) Object {
+	return Object{
 		db: db,
 	}
 }
 
-func (r repository) All(ctx context.Context) ([]Object, error) {
-	arr := make([]Object, 0)
+func (r Object) All(ctx context.Context) ([]entity.Object, error) {
+	arr := make([]entity.Object, 0)
 	err := r.db.Select(ctx, &arr, "SELECT id, name FROM object ORDER BY id")
 	if err != nil {
 		return nil, errors.WithMessage(err, "select objects")
@@ -29,7 +30,7 @@ func (r repository) All(ctx context.Context) ([]Object, error) {
 	return arr, nil
 }
 
-func (r repository) Get(ctx context.Context, id int) (*Object, error) {
+func (r Object) Get(ctx context.Context, id int) (*entity.Object, error) {
 	query, args, err := query.New().
 		Select("id", "name").
 		From("object").
@@ -39,10 +40,10 @@ func (r repository) Get(ctx context.Context, id int) (*Object, error) {
 		return nil, errors.WithMessage(err, "build query")
 	}
 
-	o := Object{}
+	o := entity.Object{}
 	err = r.db.SelectRow(ctx, &o, query, args...)
 	if err == sql.ErrNoRows {
-		return nil, ErrObjectNotFound
+		return nil, entity.ErrObjectNotFound
 	}
 	if err != nil {
 		return nil, errors.WithMessage(err, "select object")

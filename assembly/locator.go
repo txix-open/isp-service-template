@@ -5,8 +5,10 @@ import (
 	"github.com/integration-system/isp-kit/grpc/endpoint"
 	"github.com/integration-system/isp-kit/grpc/isp"
 	"github.com/integration-system/isp-kit/log"
+	"msp-service-template/controller"
+	"msp-service-template/repository"
 	"msp-service-template/routes"
-	"msp-service-template/usecase/object"
+	"msp-service-template/service"
 )
 
 type Locator struct {
@@ -22,11 +24,11 @@ func NewLocator(db db.DB, logger log.Logger) Locator {
 }
 
 func (l Locator) Handler() isp.BackendServiceServer {
-	repo := object.NewRepository(l.db)
-	service := object.NewService(repo)
-	controller := object.NewController(service)
+	objectRepo := repository.NewObject(l.db)
+	objectService := service.NewObject(objectRepo)
+	objectController := controller.NewObject(objectService)
 	c := routes.Controllers{
-		Object: controller,
+		Object: objectController,
 	}
 	mapper := endpoint.DefaultWrapper(l.logger)
 	handler := routes.Handler(mapper, c)

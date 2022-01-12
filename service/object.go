@@ -1,34 +1,36 @@
-package object
+package service
 
 import (
 	"context"
 
 	"github.com/pkg/errors"
+	"msp-service-template/domain"
+	"msp-service-template/entity"
 )
 
 type Repo interface {
-	All(ctx context.Context) ([]Object, error)
-	Get(ctx context.Context, id int) (*Object, error)
+	All(ctx context.Context) ([]entity.Object, error)
+	Get(ctx context.Context, id int) (*entity.Object, error)
 }
 
-type service struct {
+type Object struct {
 	repo Repo
 }
 
-func NewService(repo Repo) service {
-	return service{
+func NewObject(repo Repo) Object {
+	return Object{
 		repo: repo,
 	}
 }
 
-func (s service) All(ctx context.Context) ([]Domain, error) {
+func (s Object) All(ctx context.Context) ([]domain.Object, error) {
 	objects, err := s.repo.All(ctx)
 	if err != nil {
 		return nil, errors.WithMessage(err, "get all objects")
 	}
-	result := make([]Domain, 0, len(objects))
+	result := make([]domain.Object, 0, len(objects))
 	for _, object := range objects {
-		d := Domain{
+		d := domain.Object{
 			Name: object.Name,
 		}
 		result = append(result, d)
@@ -36,12 +38,12 @@ func (s service) All(ctx context.Context) ([]Domain, error) {
 	return result, nil
 }
 
-func (s service) Get(ctx context.Context, id int) (*Domain, error) {
+func (s Object) Get(ctx context.Context, id int) (*domain.Object, error) {
 	object, err := s.repo.Get(ctx, id)
 	if err != nil {
 		return nil, errors.WithMessagef(err, "get object by id %d", id)
 	}
-	d := Domain{
+	d := domain.Object{
 		Name: object.Name,
 	}
 	return &d, nil
