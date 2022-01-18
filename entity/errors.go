@@ -5,5 +5,6 @@ import (
 )
 
 var (
-	ErrObjectNotFound = errors.New("object not found")
+	ErrObjectNotFound  = errors.New("object not found")
+	ErrMessageNotFound = errors.New("message not found")
 )
