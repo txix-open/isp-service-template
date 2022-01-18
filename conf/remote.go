@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	"github.com/integration-system/isp-kit/dbx"
+	"github.com/integration-system/isp-kit/grmqx"
 	"github.com/integration-system/isp-kit/log"
 	"github.com/integration-system/isp-kit/rc/schema"
 	"github.com/integration-system/jsonschema"
@@ -18,5 +19,11 @@ func init() {
 
 type Remote struct {
 	Database dbx.Config
+	Consumer Consumer
 	LogLevel log.Level `schemaGen:"logLevel" valid:"required" schema:"Уровень логирования"`
+}
+
+type Consumer struct {
+	Client grmqx.Connection
+	Config grmqx.Consumer
 }
