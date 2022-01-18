@@ -8,22 +8,21 @@ import (
 	"github.com/integration-system/isp-kit/cluster"
 	"github.com/integration-system/isp-kit/dbrx"
 	"github.com/integration-system/isp-kit/dbx"
+	"github.com/integration-system/isp-kit/grmqx"
 	"github.com/integration-system/isp-kit/grpc"
 	"github.com/integration-system/isp-kit/grpc/client"
 	"github.com/integration-system/isp-kit/log"
-	"github.com/integration-system/isp-kit/rc"
 	"github.com/pkg/errors"
 	"msp-service-template/conf"
 )
 
 type Assembly struct {
-	remoteConfig   *rc.Config
-	db             *dbrx.Client
-	server         *grpc.Server
-	clusterCli     *cluster.Client
-	mdmCli         *client.Client
-	logger         *log.Adapter
-	bindingAddress string
+	boot   *bootstrap.Bootstrap
+	db     *dbrx.Client
+	server *grpc.Server
+	mdmCli *client.Client
+	logger *log.Adapter
+	mqCli  *grmqx.Client
 }
 
 func New(boot *bootstrap.Bootstrap) (*Assembly, error) {
@@ -33,14 +32,14 @@ func New(boot *bootstrap.Bootstrap) (*Assembly, error) {
 	if err != nil {
 		return nil, errors.WithMessage(err, "create mdm client")
 	}
+	mqCli := grmqx.New(boot.App.Logger())
 	return &Assembly{
-		db:             db,
-		server:         server,
-		clusterCli:     boot.ClusterCli,
-		remoteConfig:   boot.RemoteConfig,
-		mdmCli:         mdmCli,
-		logger:         boot.App.Logger(),
-		bindingAddress: boot.BindingAddress,
+		boot:   boot,
+		db:     db,
+		server: server,
+		mdmCli: mdmCli,
+		logger: boot.App.Logger(),
+		mqCli:  mqCli,
 	}, nil
 }
 
@@ -49,7 +48,7 @@ func (a *Assembly) ReceiveConfig(ctx context.Context, remoteConfig []byte) error
 		newCfg  conf.Remote
 		prevCfg conf.Remote
 	)
-	err := a.remoteConfig.Upgrade(remoteConfig, &newCfg, &prevCfg)
+	err := a.boot.RemoteConfig.Upgrade(remoteConfig, &newCfg, &prevCfg)
 	if err != nil {
 		a.logger.Fatal(ctx, errors.WithMessage(err, "upgrade remote config"))
 	}
@@ -64,6 +63,12 @@ func (a *Assembly) ReceiveConfig(ctx context.Context, remoteConfig []byte) error
 	locator := NewLocator(a.db, a.logger)
 	handler := locator.Handler()
 	a.server.Upgrade(handler)
+
+	brokerConfig := locator.BrokerConfig(newCfg.Consumer)
+	err = a.mqCli.Upgrade(ctx, brokerConfig)
+	if err != nil {
+		a.logger.Fatal(ctx, errors.WithMessage(err, "upgrade mq client"))
+	}
 	return nil
 }
 
@@ -73,17 +78,17 @@ func (a *Assembly) Runners() []app.Runner {
 		RemoteConfigReceiver(a)
 	return []app.Runner{
 		app.RunnerFunc(func(ctx context.Context) error {
-			return a.server.ListenAndServe(a.bindingAddress)
+			return a.server.ListenAndServe(a.boot.BindingAddress)
 		}),
 		app.RunnerFunc(func(ctx context.Context) error {
-			return a.clusterCli.Run(ctx, eventHandler)
+			return a.boot.ClusterCli.Run(ctx, eventHandler)
 		}),
 	}
 }
 
 func (a *Assembly) Closers() []app.Closer {
 	return []app.Closer{
-		a.clusterCli,
+		a.boot.ClusterCli,
 		app.CloserFunc(func() error {
 			a.server.Shutdown()
 			return nil
