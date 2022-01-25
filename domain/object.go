@@ -1,6 +1,5 @@
-package entity
+package domain
 
 type Object struct {
-	Id   string
 	Name string
 }

@@ -1,25 +1,44 @@
 package controller
 
 import (
-	"msp-service-template/service"
-	"msp-service-template/shared"
+	"context"
+
+	"github.com/pkg/errors"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"msp-service-template/domain"
+	"msp-service-template/entity"
 )
 
-var (
-	ObjectController = objectImpl{}
-)
-
-type objectImpl struct {
+type ObjectService interface {
+	All(ctx context.Context) ([]domain.Object, error)
+	Get(ctx context.Context, id int) (*domain.Object, error)
 }
 
-// @Tags {название группы методов}
-// @Summary {название метода}
-// @Description {описание метода}
-// @Accept json
-// @Produce json
-// @Success 200 {array} shared.ObjectDomain
-// @Failure 500 {object} structure.GrpcError
-// @Router /objects/get_all [POST]
-func (objectImpl) GetAll() ([]shared.ObjectDomain, error) {
-	return service.ObjectService.GetAll()
+type Object struct {
+	s ObjectService
+}
+
+func NewObject(s ObjectService) Object {
+	return Object{
+		s: s,
+	}
+}
+
+func (c Object) All(ctx context.Context) ([]domain.Object, error) {
+	return c.s.All(ctx)
+}
+
+type reqById struct {
+	Id int `valid:"required"`
+}
+
+func (c Object) GetById(ctx context.Context, req reqById) (*domain.Object, error) {
+	d, err := c.s.Get(ctx, req.Id)
+	switch {
+	case errors.Is(err, entity.ErrObjectNotFound):
+		return nil, status.Errorf(codes.NotFound, "object by id '%d' not found", req.Id)
+	default:
+		return d, err
+	}
 }
