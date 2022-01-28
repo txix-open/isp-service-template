@@ -20,7 +20,7 @@ func init() {
 type Remote struct {
 	Database dbx.Config
 	Consumer Consumer
-	LogLevel log.Level `schemaGen:"logLevel" valid:"required" schema:"Уровень логирования"`
+	LogLevel log.Level `schemaGen:"logLevel" schema:"Уровень логирования"`
 }
 
 type Consumer struct {
