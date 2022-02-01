@@ -38,7 +38,7 @@ func (l Locator) Handler() isp.BackendServiceServer {
 	c := routes.Controllers{
 		Object: objectController,
 	}
-	mapper := endpoint.DefaultWrapper(l.logger)
+	mapper := endpoint.DefaultWrapper(l.logger, endpoint.BodyLogger(l.logger))
 	handler := routes.Handler(mapper, c)
 	return handler
 }
@@ -49,7 +49,7 @@ func (l Locator) BrokerConfig(consumerCfg conf.Consumer) grmqx.Config {
 	msgController := controller.NewMessage(msgService)
 
 	handler := grmqx.NewResultHandler(l.logger, msgController)
-	consumer := consumerCfg.Config.DefaultConsumer(handler, l.logger)
+	consumer := consumerCfg.Config.DefaultConsumer(handler, grmqx.ConsumerLog(l.logger))
 
 	brokerConfig := grmqx.NewConfig(
 		consumerCfg.Client.Url(),
