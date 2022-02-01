@@ -65,7 +65,7 @@ func (a *Assembly) ReceiveConfig(ctx context.Context, remoteConfig []byte) error
 	a.server.Upgrade(handler)
 
 	brokerConfig := locator.BrokerConfig(newCfg.Consumer)
-	err = a.mqCli.Upgrade(ctx, brokerConfig)
+	err = a.mqCli.Upgrade(a.boot.App.Context(), brokerConfig) //we use app context because parent context will be closed after 5sec
 	if err != nil {
 		a.logger.Fatal(ctx, errors.WithMessage(err, "upgrade mq client"))
 	}
