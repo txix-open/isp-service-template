@@ -93,6 +93,10 @@ func (a *Assembly) Closers() []app.Closer {
 			a.server.Shutdown()
 			return nil
 		}),
+		app.CloserFunc(func() error {
+			a.mqCli.Close()
+			return nil
+		}),
 		a.db,
 		a.mdmCli,
 	}
