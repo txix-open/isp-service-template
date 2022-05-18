@@ -3,6 +3,8 @@ package assembly
 import (
 	"context"
 
+	"msp-service-template/conf"
+
 	"github.com/integration-system/isp-kit/app"
 	"github.com/integration-system/isp-kit/bootstrap"
 	"github.com/integration-system/isp-kit/cluster"
@@ -13,7 +15,6 @@ import (
 	"github.com/integration-system/isp-kit/grpc/client"
 	"github.com/integration-system/isp-kit/log"
 	"github.com/pkg/errors"
-	"msp-service-template/conf"
 )
 
 type Assembly struct {
@@ -57,7 +58,7 @@ func (a *Assembly) ReceiveConfig(ctx context.Context, remoteConfig []byte) error
 
 	err = a.db.Upgrade(ctx, newCfg.Database)
 	if err != nil {
-		a.logger.Fatal(ctx, errors.WithMessage(err, "upgrade db client"), log.Any("config", newCfg.Database))
+		a.logger.Fatal(ctx, errors.WithMessage(err, "upgrade db client"))
 	}
 
 	locator := NewLocator(a.db, a.logger)
