@@ -55,7 +55,7 @@ func TestGetById(t *testing.T) {
 		Id int
 	}
 
-	//empty req body
+	// empty req body
 	result := Object{}
 	err := cli.Invoke("msp-service-template/object/get_by_id").
 		ReadJsonResponse(&result).
@@ -63,7 +63,7 @@ func TestGetById(t *testing.T) {
 	assert.Error(err)
 	assert.EqualValues(codes.InvalidArgument, status.Code(err))
 
-	//id is required
+	// id is required
 	result = Object{}
 	err = cli.Invoke("msp-service-template/object/get_by_id").
 		ReadJsonResponse(&result).
@@ -72,7 +72,7 @@ func TestGetById(t *testing.T) {
 	assert.Error(err)
 	assert.EqualValues(codes.InvalidArgument, status.Code(err))
 
-	//not found
+	// not found
 	result = Object{}
 	err = cli.Invoke("msp-service-template/object/get_by_id").
 		ReadJsonResponse(&result).
@@ -81,7 +81,7 @@ func TestGetById(t *testing.T) {
 	assert.Error(err)
 	assert.EqualValues(codes.NotFound, status.Code(err))
 
-	//happy path
+	// happy path
 	result = Object{}
 	err = cli.Invoke("msp-service-template/object/get_by_id").
 		ReadJsonResponse(&result).

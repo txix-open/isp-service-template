@@ -44,7 +44,7 @@ func (m Message) Handle(ctx context.Context, msg entity.Message) error {
 }
 
 func (m Message) handle(ctx context.Context, msg entity.Message, tx MessageTransaction) error {
-	err := tx.Lock(ctx, strconv.FormatInt(msg.Id, 10))
+	err := tx.Lock(ctx, strconv.FormatInt(msg.Id, 10)) //nolint:gomnd
 	if err != nil {
 		return errors.WithMessage(err, "lock by id")
 	}

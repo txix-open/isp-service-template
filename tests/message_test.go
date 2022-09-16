@@ -1,8 +1,6 @@
 package tests
 
 import (
-	"context"
-	"encoding/json"
 	"testing"
 	"time"
 
@@ -24,65 +22,53 @@ func TestConsuming(t *testing.T) {
 
 	locator := assembly.NewLocator(testDb, test.Logger())
 	config := conf.Consumer{
-		Client: testMq.ConnectionConfig(),
 		Config: grmqx.Consumer{
 			Queue: "test",
 			Dlq:   true,
 		},
 	}
 	brokerConfig := locator.BrokerConfig(config)
+	testMq.Upgrade(brokerConfig)
 
-	mqCli := grmqx.New(test.Logger())
-	test.T().Cleanup(func() {
-		mqCli.Close()
-	})
-	err := mqCli.Upgrade(context.Background(), brokerConfig)
-	require.NoError(err)
-
-	//invalid message
+	// invalid message
 	testMq.Publish("", "test", amqp091.Publishing{Body: []byte("invalid json")})
 	time.Sleep(1 * time.Second)
 	require.EqualValues(1, testMq.QueueLength("test.DLQ"))
 
-	//insert new message
+	// insert new message
 	expected := entity.Message{
 		Id:      1,
 		Version: 2,
 		Data:    entity.MessageData{Text: "a"},
 	}
-	data, err := json.Marshal(expected)
-	require.NoError(err)
-	testMq.Publish("", "test", amqp091.Publishing{Body: data})
+
+	testMq.PublishJson("", "test", expected)
 	time.Sleep(1 * time.Second)
 	actual := entity.Message{}
 	testDb.Must().SelectRow(&actual, "select * from message where id = $1", expected.Id)
 	require.EqualValues(0, testMq.QueueLength("test"))
 	require.EqualValues(expected, actual)
 
-	//ignore message
+	// ignore message
 	oldMsg := entity.Message{
 		Id:      1,
 		Version: 1,
 		Data:    entity.MessageData{Text: "b"},
 	}
-	data, err = json.Marshal(oldMsg)
-	require.NoError(err)
-	testMq.Publish("", "test", amqp091.Publishing{Body: data})
+	testMq.PublishJson("", "test", oldMsg)
 	time.Sleep(1 * time.Second)
 	actual = entity.Message{}
 	testDb.Must().SelectRow(&actual, "select * from message where id = $1", expected.Id)
 	require.EqualValues(0, testMq.QueueLength("test"))
 	require.EqualValues(expected, actual)
 
-	//update message
+	// update message
 	expected = entity.Message{
 		Id:      1,
 		Version: 3,
 		Data:    entity.MessageData{Text: "b"},
 	}
-	data, err = json.Marshal(expected)
-	require.NoError(err)
-	testMq.Publish("", "test", amqp091.Publishing{Body: data})
+	testMq.PublishJson("", "test", expected)
 	time.Sleep(1 * time.Second)
 	actual = entity.Message{}
 	testDb.Must().SelectRow(&actual, "select * from message where id = $1", expected.Id)
