@@ -28,7 +28,7 @@ type Assembly struct {
 
 func New(boot *bootstrap.Bootstrap) (*Assembly, error) {
 	db := dbrx.New(dbx.WithMigration(boot.MigrationsDir))
-	server := grpc.NewServer()
+	server := grpc.DefaultServer()
 	mdmCli, err := client.Default()
 	if err != nil {
 		return nil, errors.WithMessage(err, "create mdm client")
