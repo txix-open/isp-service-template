@@ -79,10 +79,18 @@ func (a *Assembly) Runners() []app.Runner {
 		RemoteConfigReceiver(a)
 	return []app.Runner{
 		app.RunnerFunc(func(ctx context.Context) error {
-			return a.server.ListenAndServe(a.boot.BindingAddress)
+			err := a.server.ListenAndServe(a.boot.BindingAddress)
+			if err != nil {
+				return errors.WithMessage(err, "listen ans serve grpc server")
+			}
+			return nil
 		}),
 		app.RunnerFunc(func(ctx context.Context) error {
-			return a.boot.ClusterCli.Run(ctx, eventHandler)
+			err := a.boot.ClusterCli.Run(ctx, eventHandler)
+			if err != nil {
+				return errors.WithMessage(err, "run cluster client")
+			}
+			return nil
 		}),
 	}
 }

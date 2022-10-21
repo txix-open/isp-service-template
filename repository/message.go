@@ -36,7 +36,7 @@ func (m Message) Insert(ctx context.Context, msg entity.Message) error {
 func (m Message) GetLastVersion(ctx context.Context, id int64) (int64, error) {
 	version := int64(0)
 	err := m.db.SelectRow(ctx, &version, "SELECT version FROM message WHERE id = $1", id)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return 0, entity.ErrMessageNotFound
 	}
 	if err != nil {

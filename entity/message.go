@@ -16,6 +16,7 @@ type MessageData struct {
 	Text string
 }
 
+// nolint
 func (m *MessageData) Scan(src interface{}) error {
 	return json.Unmarshal(src.([]byte), m)
 }

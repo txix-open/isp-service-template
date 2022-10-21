@@ -3,8 +3,8 @@ package assembly
 import (
 	"github.com/integration-system/isp-kit/db"
 	"github.com/integration-system/isp-kit/grmqx"
+	"github.com/integration-system/isp-kit/grpc"
 	"github.com/integration-system/isp-kit/grpc/endpoint"
-	"github.com/integration-system/isp-kit/grpc/isp"
 	"github.com/integration-system/isp-kit/log"
 	"msp-service-template/conf"
 	"msp-service-template/controller"
@@ -31,7 +31,7 @@ func NewLocator(db DB, logger log.Logger) Locator {
 	}
 }
 
-func (l Locator) Handler() isp.BackendServiceServer {
+func (l Locator) Handler() *grpc.Mux {
 	objectRepo := repository.NewObject(l.db)
 	objectService := service.NewObject(objectRepo)
 	objectController := controller.NewObject(objectService)

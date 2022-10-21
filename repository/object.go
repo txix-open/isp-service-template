@@ -42,7 +42,7 @@ func (r Object) Get(ctx context.Context, id int) (*entity.Object, error) {
 
 	o := entity.Object{}
 	err = r.db.SelectRow(ctx, &o, query, args...)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, entity.ErrObjectNotFound
 	}
 	if err != nil {

@@ -1,4 +1,4 @@
-package tests
+package tests_test
 
 import (
 	"context"
@@ -20,6 +20,7 @@ type Object struct {
 }
 
 func TestGetAll(t *testing.T) {
+	t.Parallel()
 	assert, testDb, cli := prepareTest(t)
 
 	result := make([]Object, 0)
@@ -47,6 +48,7 @@ func TestGetAll(t *testing.T) {
 }
 
 func TestGetById(t *testing.T) {
+	t.Parallel()
 	assert, testDb, cli := prepareTest(t)
 
 	testDb.Must().Exec("insert into object (id, name) values ($1, $2)", 1, "a")
@@ -94,6 +96,7 @@ func TestGetById(t *testing.T) {
 }
 
 func prepareTest(t *testing.T) (*require.Assertions, *dbt.TestDb, *client.Client) {
+	t.Helper()
 	test, assert := test.New(t)
 	testDb := dbt.New(test, dbx.WithMigration("../migrations"))
 

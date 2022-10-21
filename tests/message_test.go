@@ -1,4 +1,4 @@
-package tests
+package tests_test
 
 import (
 	"testing"
@@ -16,6 +16,7 @@ import (
 )
 
 func TestConsuming(t *testing.T) {
+	t.Parallel()
 	test, require := test.New(t)
 	testMq := grmqt.New(test)
 	testDb := dbt.New(test, dbx.WithMigration("../migrations"))
