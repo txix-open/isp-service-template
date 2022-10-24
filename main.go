@@ -12,6 +12,17 @@ var (
 	version = "1.0.0"
 )
 
+// @title msp-service-template
+// @version 1.0.0
+// @description Шаблон сервиса
+
+// @license.name GNU GPL v3.0
+
+// @host localhost:9000
+// @BasePath /api/msp-service-template
+
+//go:generate swag init
+//go:generate rm -f docs/swagger.json docs/docs.go
 func main() {
 	boot := bootstrap.New(version, conf.Remote{}, routes.EndpointDescriptors())
 	app := boot.App

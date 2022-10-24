@@ -22,6 +22,7 @@ linters:
     - gofumpt #у нас собственные правила форматирования импортов
     - nolintlint #Goland все равно форматирует с отступом
     - nlreturn #не всегда имеет смысл
+    - godot #не актуально для свагера
 linters-settings:
   funlen:
     lines: 80

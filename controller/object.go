@@ -25,15 +25,31 @@ func NewObject(s ObjectService) Object {
 	}
 }
 
+// All
+// @Tags object
+// @Summary Получить все объекты
+// @Description Возвращает список объектов
+// @Accept json
+// @Produce json
+// @Success 200 {array} domain.Object
+// @Failure 500 {object} domain.GrpcError
+// @Router /object/all [POST]
 func (c Object) All(ctx context.Context) ([]domain.Object, error) {
 	return c.s.All(ctx)
 }
 
-type reqById struct {
-	Id int `valid:"required"`
-}
-
-func (c Object) GetById(ctx context.Context, req reqById) (*domain.Object, error) {
+// GetById
+// @Tags object
+// @Summary Получить объект по его идентификатору
+// @Description Возвращает объект
+// @Accept json
+// @Produce json
+// @Param body body domain.ByIdRequest true "Идентификатор объекта"
+// @Success 200 {object} domain.Object
+// @Failure 404 {object} domain.GrpcError
+// @Failure 500 {object} domain.GrpcError
+// @Router /object/get_by_id [POST]
+func (c Object) GetById(ctx context.Context, req domain.ByIdRequest) (*domain.Object, error) {
 	d, err := c.s.Get(ctx, req.Id)
 	switch {
 	case errors.Is(err, entity.ErrObjectNotFound):
