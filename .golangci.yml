@@ -23,6 +23,7 @@ linters:
     - nolintlint #Goland все равно форматирует с отступом
     - nlreturn #не всегда имеет смысл
     - godot #не актуально для свагера
+    - ifshort #приняли решение, что мы так не пишем if err := ...; err != nil {}
 linters-settings:
   funlen:
     lines: 80
