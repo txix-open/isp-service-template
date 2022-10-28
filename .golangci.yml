@@ -25,6 +25,7 @@ linters:
     - godot #не актуально для свагера
     - ifshort #приняли решение, что мы так не пишем if err := ...; err != nil {}
     - godox #не позволяет оставлять todo
+    - maligned #аллокацией памяти для структур конфликтует с удобством их чтения
 linters-settings:
   funlen:
     lines: 80
