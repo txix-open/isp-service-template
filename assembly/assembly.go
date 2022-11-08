@@ -34,6 +34,8 @@ func New(boot *bootstrap.Bootstrap) (*Assembly, error) {
 		return nil, errors.WithMessage(err, "create mdm client")
 	}
 	mqCli := grmqx.New(boot.App.Logger())
+	boot.HealthcheckRegistry.Register("db", db)
+	boot.HealthcheckRegistry.Register("mq", mqCli)
 	return &Assembly{
 		boot:   boot,
 		db:     db,

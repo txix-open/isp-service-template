@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/Masterminds/squirrel v1.5.3
-	github.com/integration-system/isp-kit v1.13.0
+	github.com/integration-system/isp-kit v1.13.2
 	github.com/integration-system/jsonschema v1.0.1
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.0
