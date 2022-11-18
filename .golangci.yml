@@ -26,6 +26,7 @@ linters:
     - ifshort #приняли решение, что мы так не пишем if err := ...; err != nil {}
     - godox #не позволяет оставлять todo
     - maligned #аллокацией памяти для структур конфликтует с удобством их чтения
+    - nosnakecase #не позволяет заводить пакеты используя snake_case
 linters-settings:
   funlen:
     lines: 80
