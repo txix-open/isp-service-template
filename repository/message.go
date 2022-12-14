@@ -7,6 +7,7 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/integration-system/isp-kit/db"
 	"github.com/integration-system/isp-kit/db/query"
+	"github.com/integration-system/isp-kit/metrics/sql_metrics"
 	"github.com/pkg/errors"
 	"msp-service-template/entity"
 )
@@ -22,6 +23,8 @@ func NewMessage(db db.DB) Message {
 }
 
 func (m Message) Insert(ctx context.Context, msg entity.Message) error {
+	ctx = sql_metrics.OperationLabelToContext(ctx, "Message.Insert")
+
 	_, err := m.db.Exec(
 		ctx,
 		"INSERT INTO message (id, version, data) VALUES ($1, $2, $3)",
@@ -34,6 +37,8 @@ func (m Message) Insert(ctx context.Context, msg entity.Message) error {
 }
 
 func (m Message) GetLastVersion(ctx context.Context, id int64) (int64, error) {
+	ctx = sql_metrics.OperationLabelToContext(ctx, "Message.GetLastVersion")
+
 	version := int64(0)
 	err := m.db.SelectRow(ctx, &version, "SELECT version FROM message WHERE id = $1", id)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -46,6 +51,8 @@ func (m Message) GetLastVersion(ctx context.Context, id int64) (int64, error) {
 }
 
 func (m Message) UpdateById(ctx context.Context, msg entity.Message) error {
+	ctx = sql_metrics.OperationLabelToContext(ctx, "Message.UpdateById")
+
 	query, args, err := query.New().
 		Update("message").
 		Set("version", msg.Version).

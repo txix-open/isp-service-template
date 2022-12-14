@@ -7,6 +7,7 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/integration-system/isp-kit/db"
 	"github.com/integration-system/isp-kit/db/query"
+	"github.com/integration-system/isp-kit/metrics/sql_metrics"
 	"github.com/pkg/errors"
 	"msp-service-template/entity"
 )
@@ -22,6 +23,8 @@ func NewObject(db db.DB) Object {
 }
 
 func (r Object) All(ctx context.Context) ([]entity.Object, error) {
+	ctx = sql_metrics.OperationLabelToContext(ctx, "Object.All")
+
 	arr := make([]entity.Object, 0)
 	err := r.db.Select(ctx, &arr, "SELECT id, name FROM object ORDER BY id")
 	if err != nil {
@@ -31,6 +34,8 @@ func (r Object) All(ctx context.Context) ([]entity.Object, error) {
 }
 
 func (r Object) Get(ctx context.Context, id int) (*entity.Object, error) {
+	ctx = sql_metrics.OperationLabelToContext(ctx, "Object.Get")
+
 	query, args, err := query.New().
 		Select("id", "name").
 		From("object").

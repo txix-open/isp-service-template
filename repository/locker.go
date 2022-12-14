@@ -5,6 +5,7 @@ import (
 	"hash/fnv"
 
 	"github.com/integration-system/isp-kit/db"
+	"github.com/integration-system/isp-kit/metrics/sql_metrics"
 	"github.com/pkg/errors"
 )
 
@@ -17,6 +18,8 @@ func NewLocker(db db.DB) Locker {
 }
 
 func (l Locker) Lock(ctx context.Context, key string) error {
+	ctx = sql_metrics.OperationLabelToContext(ctx, "Locker.Lock")
+
 	hash := fnv.New32a()
 	_, err := hash.Write([]byte(key))
 	if err != nil {
@@ -32,6 +35,8 @@ func (l Locker) Lock(ctx context.Context, key string) error {
 }
 
 func (l Locker) TryLock(ctx context.Context, key string) (bool, error) {
+	ctx = sql_metrics.OperationLabelToContext(ctx, "Locker.TryLock")
+
 	hash := fnv.New32a()
 	_, err := hash.Write([]byte(key))
 	if err != nil {
