@@ -32,6 +32,8 @@ linters-settings:
     lines: 80
   lll:
     line-length: 150
+  cyclop:
+    max-complexity: 15 #по умолчанию 10 мало
   revive:
     rules:
       - name: var-naming #отключаем Id -> ID
