@@ -9,6 +9,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	prefix = "msp-service-template"
+)
+
 type Locker struct {
 	db db.DB
 }
@@ -21,7 +25,7 @@ func (l Locker) Lock(ctx context.Context, key string) error {
 	ctx = sql_metrics.OperationLabelToContext(ctx, "Locker.Lock")
 
 	hash := fnv.New32a()
-	_, err := hash.Write([]byte(key))
+	_, err := hash.Write([]byte(prefix + key))
 	if err != nil {
 		return errors.WithMessage(err, "generate hash")
 	}
@@ -38,7 +42,7 @@ func (l Locker) TryLock(ctx context.Context, key string) (bool, error) {
 	ctx = sql_metrics.OperationLabelToContext(ctx, "Locker.TryLock")
 
 	hash := fnv.New32a()
-	_, err := hash.Write([]byte(key))
+	_, err := hash.Write([]byte(prefix + key))
 	if err != nil {
 		return false, errors.WithMessage(err, "generate hash")
 	}

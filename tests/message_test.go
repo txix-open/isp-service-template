@@ -8,6 +8,7 @@ import (
 	"github.com/integration-system/isp-kit/grmqx"
 	"github.com/integration-system/isp-kit/test"
 	"github.com/integration-system/isp-kit/test/dbt"
+	"github.com/integration-system/isp-kit/test/fake"
 	"github.com/integration-system/isp-kit/test/grmqt"
 	"github.com/rabbitmq/amqp091-go"
 	"msp-service-template/assembly"
@@ -37,11 +38,7 @@ func TestConsuming(t *testing.T) {
 	require.EqualValues(1, testMq.QueueLength("test.DLQ"))
 
 	// insert new message
-	expected := entity.Message{
-		Id:      1,
-		Version: 2,
-		Data:    entity.MessageData{Text: "a"},
-	}
+	expected := fake.It[entity.Message]()
 
 	testMq.PublishJson("", "test", expected)
 	time.Sleep(1 * time.Second)
@@ -51,11 +48,8 @@ func TestConsuming(t *testing.T) {
 	require.EqualValues(expected, actual)
 
 	// ignore message
-	oldMsg := entity.Message{
-		Id:      1,
-		Version: 1,
-		Data:    entity.MessageData{Text: "b"},
-	}
+	oldMsg := fake.It[entity.Message]()
+	oldMsg.Version = expected.Version
 	testMq.PublishJson("", "test", oldMsg)
 	time.Sleep(1 * time.Second)
 	actual = entity.Message{}
@@ -64,11 +58,9 @@ func TestConsuming(t *testing.T) {
 	require.EqualValues(expected, actual)
 
 	// update message
-	expected = entity.Message{
-		Id:      1,
-		Version: 3,
-		Data:    entity.MessageData{Text: "b"},
-	}
+	oldVersion := expected.Version
+	expected = fake.It[entity.Message]()
+	expected.Version = oldVersion + 1
 	testMq.PublishJson("", "test", expected)
 	time.Sleep(1 * time.Second)
 	actual = entity.Message{}
