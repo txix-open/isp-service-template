@@ -27,6 +27,9 @@ linters:
     - godox #не позволяет оставлять todo
     - maligned #аллокацией памяти для структур конфликтует с удобством их чтения
     - nosnakecase #не позволяет заводить пакеты используя snake_case
+    - depguard #не всегда имеет смысл
+    - dupword #не иммет смысла
+    - tagalign #не всегда имеет смысл
 linters-settings:
   funlen:
     lines: 80
