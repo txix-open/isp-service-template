@@ -28,7 +28,7 @@ linters:
     - maligned #аллокацией памяти для структур конфликтует с удобством их чтения
     - nosnakecase #не позволяет заводить пакеты используя snake_case
     - depguard #не всегда имеет смысл
-    - dupword #не иммет смысла
+    - dupword #не имеет смысла
     - tagalign #не всегда имеет смысл
 linters-settings:
   funlen:
