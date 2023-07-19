@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"time"
 
 	"github.com/integration-system/isp-kit/grmqx"
 	"github.com/integration-system/isp-kit/json"
@@ -33,7 +32,7 @@ func (m Message) Handle(ctx context.Context, body []byte) grmqx.Result {
 
 	err = m.service.Handle(ctx, msg)
 	if err != nil {
-		return grmqx.Requeue(1*time.Second, errors.WithMessage(err, "handle message"))
+		return grmqx.Retry(errors.WithMessage(err, "handle message"))
 	}
 	return grmqx.Ack()
 }

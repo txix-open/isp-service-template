@@ -18,8 +18,15 @@
     "config": {
       "queue": "queue",
       "dlq": true,
-      "prefetchCount": 128,
-      "concurrency": 128
+      "prefetchCount": 32,
+      "concurrency": 32,
+      "retryPolicy": {
+        "finallyMoveToDlq": false,
+        "retries": [{
+          "delayInMs": 1000,
+          "maxAttempts": -1
+        }]
+      }
     }
   }
 }

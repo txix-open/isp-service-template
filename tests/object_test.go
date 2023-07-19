@@ -25,7 +25,7 @@ func TestGetAll(t *testing.T) {
 
 	result := make([]Object, 0)
 	err := cli.Invoke("msp-service-template/object/all").
-		ReadJsonResponse(&result).
+		JsonResponseBody(&result).
 		Do(context.Background())
 	assert.NoError(err)
 	assert.Empty(result)
@@ -35,7 +35,7 @@ func TestGetAll(t *testing.T) {
 
 	result = make([]Object, 0)
 	err = cli.Invoke("msp-service-template/object/all").
-		ReadJsonResponse(&result).
+		JsonResponseBody(&result).
 		Do(context.Background())
 	assert.NoError(err)
 
@@ -60,7 +60,7 @@ func TestGetById(t *testing.T) {
 	// empty req body
 	result := Object{}
 	err := cli.Invoke("msp-service-template/object/get_by_id").
-		ReadJsonResponse(&result).
+		JsonResponseBody(&result).
 		Do(context.Background())
 	assert.Error(err)
 	assert.EqualValues(codes.InvalidArgument, status.Code(err))
@@ -68,7 +68,7 @@ func TestGetById(t *testing.T) {
 	// id is required
 	result = Object{}
 	err = cli.Invoke("msp-service-template/object/get_by_id").
-		ReadJsonResponse(&result).
+		JsonResponseBody(&result).
 		JsonRequestBody(reqBody{}).
 		Do(context.Background())
 	assert.Error(err)
@@ -77,7 +77,7 @@ func TestGetById(t *testing.T) {
 	// not found
 	result = Object{}
 	err = cli.Invoke("msp-service-template/object/get_by_id").
-		ReadJsonResponse(&result).
+		JsonResponseBody(&result).
 		JsonRequestBody(reqBody{Id: 2}).
 		Do(context.Background())
 	assert.Error(err)
@@ -86,7 +86,7 @@ func TestGetById(t *testing.T) {
 	// happy path
 	result = Object{}
 	err = cli.Invoke("msp-service-template/object/get_by_id").
-		ReadJsonResponse(&result).
+		JsonResponseBody(&result).
 		JsonRequestBody(reqBody{Id: 1}).
 		Do(context.Background())
 	assert.NoError(err)
