@@ -2,10 +2,10 @@ package controller
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/integration-system/isp-kit/grpc/apierrors"
 	"github.com/pkg/errors"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"msp-service-template/domain"
 	"msp-service-template/entity"
 )
@@ -32,7 +32,7 @@ func NewObject(s ObjectService) Object {
 // @Accept json
 // @Produce json
 // @Success 200 {array} domain.Object
-// @Failure 500 {object} domain.GrpcError
+// @Failure 500 {object} apierrors.Error
 // @Router /object/all [POST]
 func (c Object) All(ctx context.Context) ([]domain.Object, error) {
 	return c.s.All(ctx)
@@ -41,20 +41,22 @@ func (c Object) All(ctx context.Context) ([]domain.Object, error) {
 // GetById
 // @Tags object
 // @Summary Получить объект по его идентификатору
-// @Description Возвращает объект
+// @Description `errorCode: 800` - если объект не найден
 // @Accept json
 // @Produce json
 // @Param body body domain.ByIdRequest true "Идентификатор объекта"
 // @Success 200 {object} domain.Object
-// @Failure 404 {object} domain.GrpcError
-// @Failure 500 {object} domain.GrpcError
+// @Failure 400 {object} apierrors.Error "Объект не найден"
+// @Failure 500 {object} apierrors.Error
 // @Router /object/get_by_id [POST]
 func (c Object) GetById(ctx context.Context, req domain.ByIdRequest) (*domain.Object, error) {
 	d, err := c.s.Get(ctx, req.Id)
 	switch {
 	case errors.Is(err, entity.ErrObjectNotFound):
-		return nil, status.Errorf(codes.NotFound, "object by id '%d' not found", req.Id)
+		return nil, apierrors.NewBusinessError(domain.ErrCodeObjectNotFound, fmt.Sprintf("object by id '%d' not found", req.Id), err)
+	case err != nil:
+		return nil, apierrors.NewInternalServiceError(err)
 	default:
-		return d, err
+		return d, nil
 	}
 }

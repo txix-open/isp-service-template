@@ -1,22 +1,21 @@
 basePath: /api/msp-service-template
 definitions:
+  apierrors.Error:
+    properties:
+      details:
+        additionalProperties: true
+        type: object
+      errorCode:
+        type: integer
+      errorMessage:
+        type: string
+    type: object
   domain.ByIdRequest:
     properties:
       id:
         type: integer
     required:
     - id
-    type: object
-  domain.GrpcError:
-    properties:
-      details:
-        items:
-          type: object
-        type: array
-      errorCode:
-        type: string
-      errorMessage:
-        type: string
     type: object
   domain.Object:
     properties:
@@ -49,7 +48,7 @@ paths:
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/domain.GrpcError'
+            $ref: '#/definitions/apierrors.Error'
       summary: Получить все объекты
       tags:
       - object
@@ -57,7 +56,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Возвращает объект
+      description: '`errorCode: 800` - если объект не найден'
       parameters:
       - description: Идентификатор объекта
         in: body
@@ -72,14 +71,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/domain.Object'
-        "404":
-          description: Not Found
+        "400":
+          description: Объект не найден
           schema:
-            $ref: '#/definitions/domain.GrpcError'
+            $ref: '#/definitions/apierrors.Error'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/domain.GrpcError'
+            $ref: '#/definitions/apierrors.Error'
       summary: Получить объект по его идентификатору
       tags:
       - object

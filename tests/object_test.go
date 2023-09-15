@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/integration-system/isp-kit/dbx"
+	"github.com/integration-system/isp-kit/grpc/apierrors"
 	"github.com/integration-system/isp-kit/grpc/client"
 	"github.com/integration-system/isp-kit/test"
 	"github.com/integration-system/isp-kit/test/dbt"
@@ -81,7 +82,10 @@ func TestGetById(t *testing.T) {
 		JsonRequestBody(reqBody{Id: 2}).
 		Do(context.Background())
 	assert.Error(err)
-	assert.EqualValues(codes.NotFound, status.Code(err))
+	assert.EqualValues(codes.InvalidArgument, status.Code(err))
+	businessError := apierrors.FromError(err)
+	assert.NotNil(businessError)
+	assert.EqualValues(800, businessError.ErrorCode)
 
 	// happy path
 	result = Object{}
