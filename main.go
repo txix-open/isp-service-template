@@ -30,7 +30,7 @@ func main() {
 
 	assembly, err := assembly.New(boot)
 	if err != nil {
-		logger.Fatal(app.Context(), err)
+		boot.Fatal(err)
 	}
 	app.AddRunners(assembly.Runners()...)
 	app.AddClosers(assembly.Closers()...)
@@ -43,7 +43,6 @@ func main() {
 
 	err = app.Run()
 	if err != nil {
-		app.Shutdown()
-		logger.Fatal(app.Context(), err)
+		boot.Fatal(err)
 	}
 }

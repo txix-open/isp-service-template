@@ -3,6 +3,7 @@ package assembly
 import (
 	"context"
 
+	"github.com/integration-system/isp-kit/observability/sentry"
 	"msp-service-template/conf"
 
 	"github.com/integration-system/isp-kit/app"
@@ -27,13 +28,14 @@ type Assembly struct {
 }
 
 func New(boot *bootstrap.Bootstrap) (*Assembly, error) {
-	db := dbrx.New(dbx.WithMigration(boot.MigrationsDir))
+	logger := boot.App.Logger()
+	db := dbrx.New(dbx.WithMigrationRunner(boot.MigrationsDir, logger))
 	server := grpc.DefaultServer()
 	mdmCli, err := client.Default()
 	if err != nil {
 		return nil, errors.WithMessage(err, "create mdm client")
 	}
-	mqCli := grmqx.New(boot.App.Logger())
+	mqCli := grmqx.New(sentry.WrapErrorLogger(logger, boot.SentryHub))
 	boot.HealthcheckRegistry.Register("db", db)
 	boot.HealthcheckRegistry.Register("mq", mqCli)
 	return &Assembly{
@@ -41,7 +43,7 @@ func New(boot *bootstrap.Bootstrap) (*Assembly, error) {
 		db:     db,
 		server: server,
 		mdmCli: mdmCli,
-		logger: boot.App.Logger(),
+		logger: logger,
 		mqCli:  mqCli,
 	}, nil
 }
@@ -53,24 +55,24 @@ func (a *Assembly) ReceiveConfig(ctx context.Context, remoteConfig []byte) error
 	)
 	err := a.boot.RemoteConfig.Upgrade(remoteConfig, &newCfg, &prevCfg)
 	if err != nil {
-		a.logger.Fatal(ctx, errors.WithMessage(err, "upgrade remote config"))
+		a.boot.Fatal(errors.WithMessage(err, "upgrade remote config"))
 	}
 
 	a.logger.SetLevel(newCfg.LogLevel)
 
 	err = a.db.Upgrade(ctx, newCfg.Database)
 	if err != nil {
-		a.logger.Fatal(ctx, errors.WithMessage(err, "upgrade db client"))
+		a.boot.Fatal(errors.WithMessage(err, "upgrade db client"))
 	}
 
-	locator := NewLocator(a.db, a.logger)
+	locator := NewLocator(a.db, sentry.WrapErrorLogger(a.logger, a.boot.SentryHub))
 	handler := locator.Handler()
 	a.server.Upgrade(handler)
 
 	brokerConfig := locator.BrokerConfig(newCfg.Consumer)
-	err = a.mqCli.Upgrade(a.boot.App.Context(), brokerConfig) // we use app context because parent context will be closed after 5sec
+	err = a.mqCli.Upgrade(a.boot.App.Context(), brokerConfig)
 	if err != nil {
-		a.logger.Fatal(ctx, errors.WithMessage(err, "upgrade mq client"))
+		a.boot.Fatal(errors.WithMessage(err, "upgrade mq client"))
 	}
 	return nil
 }
