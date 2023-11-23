@@ -102,7 +102,7 @@ func TestGetById(t *testing.T) {
 func prepareTest(t *testing.T) (*require.Assertions, *dbt.TestDb, *client.Client) {
 	t.Helper()
 	test, assert := test.New(t)
-	testDb := dbt.New(test, dbx.WithMigration("../migrations"))
+	testDb := dbt.New(test, dbx.WithMigrationRunner("../migrations", test.Logger()))
 
 	locator := assembly.NewLocator(testDb, test.Logger())
 	_, cli := grpct.TestServer(test, locator.Handler())

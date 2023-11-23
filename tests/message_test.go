@@ -20,7 +20,7 @@ func TestConsuming(t *testing.T) {
 	t.Parallel()
 	test, require := test.New(t)
 	testMq := grmqt.New(test)
-	testDb := dbt.New(test, dbx.WithMigration("../migrations"))
+	testDb := dbt.New(test, dbx.WithMigrationRunner("../migrations", test.Logger()))
 
 	locator := assembly.NewLocator(testDb, test.Logger())
 	config := conf.Consumer{
