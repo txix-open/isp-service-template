@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
-	github.com/integration-system/isp-kit v1.25.0
+	github.com/integration-system/isp-kit v1.25.2
 	github.com/integration-system/jsonschema v1.0.1
 	github.com/pkg/errors v0.9.1
 	github.com/rabbitmq/amqp091-go v1.9.0
