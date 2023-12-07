@@ -12,9 +12,9 @@ import (
 
 // nolint: gochecknoinits
 func init() {
-	schema.CustomGenerators.Register("logLevel", func(field reflect.StructField, t *jsonschema.Type) {
+	schema.CustomGenerators.Register("logLevel", func(field reflect.StructField, t *jsonschema.Schema) {
 		t.Type = "string"
-		t.Enum = []any{"debug", "info", "error", "fatal"}
+		t.Enum = []any{"debug", "info", "warn", "error", "fatal"}
 	})
 }
 

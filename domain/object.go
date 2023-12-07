@@ -5,5 +5,5 @@ const (
 )
 
 type Object struct {
-	Name string
+	Name string `validate:"required,max=32"`
 }

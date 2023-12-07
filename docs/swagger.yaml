@@ -20,7 +20,10 @@ definitions:
   domain.Object:
     properties:
       name:
+        maxLength: 32
         type: string
+    required:
+    - name
     type: object
 host: localhost:9000
 info:
