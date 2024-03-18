@@ -49,3 +49,6 @@ linters-settings:
       - "-ST1020"
       - "-ST1021"
       - "-ST1022"
+  testifylint:
+    disable:
+      - compares
