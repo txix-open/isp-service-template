@@ -3,19 +3,19 @@ package assembly
 import (
 	"context"
 
-	"github.com/integration-system/isp-kit/observability/sentry"
+	"github.com/txix-open/isp-kit/observability/sentry"
 	"msp-service-template/conf"
 
-	"github.com/integration-system/isp-kit/app"
-	"github.com/integration-system/isp-kit/bootstrap"
-	"github.com/integration-system/isp-kit/cluster"
-	"github.com/integration-system/isp-kit/dbrx"
-	"github.com/integration-system/isp-kit/dbx"
-	"github.com/integration-system/isp-kit/grmqx"
-	"github.com/integration-system/isp-kit/grpc"
-	"github.com/integration-system/isp-kit/grpc/client"
-	"github.com/integration-system/isp-kit/log"
 	"github.com/pkg/errors"
+	"github.com/txix-open/isp-kit/app"
+	"github.com/txix-open/isp-kit/bootstrap"
+	"github.com/txix-open/isp-kit/cluster"
+	"github.com/txix-open/isp-kit/dbrx"
+	"github.com/txix-open/isp-kit/dbx"
+	"github.com/txix-open/isp-kit/grmqx"
+	"github.com/txix-open/isp-kit/grpc"
+	"github.com/txix-open/isp-kit/grpc/client"
+	"github.com/txix-open/isp-kit/log"
 )
 
 type Assembly struct {

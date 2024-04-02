@@ -3,10 +3,10 @@ package controller
 import (
 	"context"
 
-	"github.com/integration-system/grmq/consumer"
-	"github.com/integration-system/isp-kit/grmqx/handler"
-	"github.com/integration-system/isp-kit/json"
 	"github.com/pkg/errors"
+	"github.com/txix-open/grmq/consumer"
+	"github.com/txix-open/isp-kit/grmqx/handler"
+	"github.com/txix-open/isp-kit/json"
 	"msp-service-template/entity"
 )
 

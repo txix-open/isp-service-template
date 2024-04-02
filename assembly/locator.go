@@ -1,11 +1,11 @@
 package assembly
 
 import (
-	"github.com/integration-system/isp-kit/db"
-	"github.com/integration-system/isp-kit/grmqx"
-	"github.com/integration-system/isp-kit/grpc"
-	"github.com/integration-system/isp-kit/grpc/endpoint"
-	"github.com/integration-system/isp-kit/log"
+	"github.com/txix-open/isp-kit/db"
+	"github.com/txix-open/isp-kit/grmqx"
+	"github.com/txix-open/isp-kit/grpc"
+	"github.com/txix-open/isp-kit/grpc/endpoint"
+	"github.com/txix-open/isp-kit/log"
 	"msp-service-template/conf"
 	"msp-service-template/controller"
 	"msp-service-template/repository"

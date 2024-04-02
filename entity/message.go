@@ -3,7 +3,7 @@ package entity
 import (
 	"database/sql/driver"
 
-	"github.com/integration-system/isp-kit/json"
+	"github.com/txix-open/isp-kit/json"
 )
 
 type Message struct {

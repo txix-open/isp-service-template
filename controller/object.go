@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/integration-system/isp-kit/grpc/apierrors"
 	"github.com/pkg/errors"
+	"github.com/txix-open/isp-kit/grpc/apierrors"
 	"msp-service-template/domain"
 	"msp-service-template/entity"
 )

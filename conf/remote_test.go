@@ -3,7 +3,7 @@ package conf_test
 import (
 	"testing"
 
-	"github.com/integration-system/isp-kit/test/rct"
+	"github.com/txix-open/isp-kit/test/rct"
 	"msp-service-template/conf"
 )
 
