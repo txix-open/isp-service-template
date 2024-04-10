@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/rabbitmq/amqp091-go"
 	"github.com/txix-open/isp-kit/dbx"
 	"github.com/txix-open/isp-kit/grmqx"
 	"github.com/txix-open/isp-kit/test"
