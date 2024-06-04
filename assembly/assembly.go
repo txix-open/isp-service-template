@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/txix-open/isp-kit/observability/sentry"
+	"github.com/txix-open/isp-kit/rc"
 	"msp-service-template/conf"
 
 	"github.com/pkg/errors"
@@ -49,11 +50,7 @@ func New(boot *bootstrap.Bootstrap) (*Assembly, error) {
 }
 
 func (a *Assembly) ReceiveConfig(ctx context.Context, remoteConfig []byte) error {
-	var (
-		newCfg  conf.Remote
-		prevCfg conf.Remote
-	)
-	err := a.boot.RemoteConfig.Upgrade(remoteConfig, &newCfg, &prevCfg)
+	newCfg, _, err := rc.Upgrade[conf.Remote](a.boot.RemoteConfig, remoteConfig)
 	if err != nil {
 		a.boot.Fatal(errors.WithMessage(err, "upgrade remote config"))
 	}
