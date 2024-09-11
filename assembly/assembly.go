@@ -49,7 +49,7 @@ func New(boot *bootstrap.Bootstrap) (*Assembly, error) {
 	}, nil
 }
 
-func (a *Assembly) ReceiveConfig(ctx context.Context, remoteConfig []byte) error {
+func (a *Assembly) ReceiveConfig(shortTtlCtx context.Context, remoteConfig []byte) error {
 	newCfg, _, err := rc.Upgrade[conf.Remote](a.boot.RemoteConfig, remoteConfig)
 	if err != nil {
 		a.boot.Fatal(errors.WithMessage(err, "upgrade remote config"))
@@ -57,7 +57,7 @@ func (a *Assembly) ReceiveConfig(ctx context.Context, remoteConfig []byte) error
 
 	a.logger.SetLevel(newCfg.LogLevel)
 
-	err = a.db.Upgrade(ctx, newCfg.Database)
+	err = a.db.Upgrade(shortTtlCtx, newCfg.Database)
 	if err != nil {
 		a.boot.Fatal(errors.WithMessage(err, "upgrade db client"))
 	}
