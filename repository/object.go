@@ -26,10 +26,14 @@ func (r Object) All(ctx context.Context) ([]entity.Object, error) {
 	ctx = sql_metrics.OperationLabelToContext(ctx, "Object.All")
 
 	arr := make([]entity.Object, 0)
-	err := r.db.Select(ctx, &arr, "SELECT id, name FROM object ORDER BY id")
+	err := r.db.Select(ctx, &arr,
+		`SELECT id, name 
+				FROM object 
+				ORDER BY id`)
 	if err != nil {
 		return nil, errors.WithMessage(err, "select objects")
 	}
+
 	return arr, nil
 }
 
@@ -53,5 +57,6 @@ func (r Object) Get(ctx context.Context, id int) (*entity.Object, error) {
 	if err != nil {
 		return nil, errors.WithMessage(err, "select object")
 	}
+
 	return &o, nil
 }

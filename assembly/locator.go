@@ -1,10 +1,14 @@
 package assembly
 
 import (
+	"net/http"
+
+	"github.com/txix-open/grmq/consumer"
 	"github.com/txix-open/isp-kit/db"
 	"github.com/txix-open/isp-kit/grmqx"
 	"github.com/txix-open/isp-kit/grpc"
 	"github.com/txix-open/isp-kit/grpc/endpoint"
+	httpEndpoint "github.com/txix-open/isp-kit/http/endpoint"
 	"github.com/txix-open/isp-kit/log"
 	"msp-service-template/conf"
 	"msp-service-template/controller"
@@ -24,6 +28,12 @@ type Locator struct {
 	logger log.Logger
 }
 
+type LocatorConfig struct {
+	HttpHandler http.Handler
+	GrpcHandler *grpc.Mux
+	RmqHandler  consumer.Consumer
+}
+
 func NewLocator(db DB, logger log.Logger) Locator {
 	return Locator{
 		db:     db,
@@ -31,7 +41,7 @@ func NewLocator(db DB, logger log.Logger) Locator {
 	}
 }
 
-func (l Locator) Handler() *grpc.Mux {
+func (l Locator) Handlers(conf conf.Remote) LocatorConfig {
 	objectRepo := repository.NewObject(l.db)
 	objectService := service.NewObject(objectRepo)
 	objectController := controller.NewObject(objectService)
@@ -39,22 +49,21 @@ func (l Locator) Handler() *grpc.Mux {
 		Object: objectController,
 	}
 	mapper := endpoint.DefaultWrapper(l.logger, endpoint.Log(l.logger, true))
-	handler := routes.Handler(mapper, c)
-	return handler
-}
+	grpcHandler := routes.Handler(mapper, c)
 
-func (l Locator) BrokerConfig(consumerCfg conf.Consumer) grmqx.Config {
+	wrapper := httpEndpoint.DefaultWrapper(l.logger, httpEndpoint.Log(l.logger, true))
+	httpHandler := routes.HttpHandler(wrapper, c)
+
 	txManager := transaction.NewManager(l.db)
 	msgService := service.NewMessage(l.logger, txManager)
 	msgController := controller.NewMessage(msgService)
 
 	handler := grmqx.NewResultHandler(l.logger, msgController)
-	consumer := consumerCfg.Config.DefaultConsumer(handler, grmqx.ConsumerLog(l.logger, true))
+	rmqHandler := conf.Consumer.Config.DefaultConsumer(handler, grmqx.ConsumerLog(l.logger, true))
 
-	brokerConfig := grmqx.NewConfig(
-		consumerCfg.Client.Url(),
-		grmqx.WithConsumers(consumer),
-		grmqx.WithDeclarations(grmqx.TopologyFromConsumers(consumerCfg.Config)),
-	)
-	return brokerConfig
+	return LocatorConfig{
+		HttpHandler: httpHandler,
+		GrpcHandler: grpcHandler,
+		RmqHandler:  rmqHandler,
+	}
 }
