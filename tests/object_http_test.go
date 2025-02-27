@@ -2,30 +2,29 @@ package tests_test
 
 import (
 	"context"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"github.com/txix-open/isp-kit/dbx"
-	"github.com/txix-open/isp-kit/grpc/apierrors"
-	"github.com/txix-open/isp-kit/grpc/client"
+	client "github.com/txix-open/isp-kit/http/httpcli"
 	"github.com/txix-open/isp-kit/test"
 	"github.com/txix-open/isp-kit/test/dbt"
-	"github.com/txix-open/isp-kit/test/grpct"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"github.com/txix-open/isp-kit/test/httpt"
 	"msp-service-template/assembly"
+	"msp-service-template/conf"
 )
 
 type Object struct {
 	Name string
 }
 
-func TestGetAll(t *testing.T) {
+func TestGetAllHttp(t *testing.T) {
 	t.Parallel()
-	assert, testDb, cli := prepareTest(t)
+	assert, testDb, cli := prepareHttpTest(t)
 
 	result := make([]Object, 0)
-	err := cli.Invoke("msp-service-template/object/all").
+	_, err := cli.Post("/object/all").
 		JsonResponseBody(&result).
 		Do(context.Background())
 	assert.NoError(err)
@@ -35,7 +34,7 @@ func TestGetAll(t *testing.T) {
 	testDb.Must().Exec("insert into object (id, name) values ($1, $2)", 2, "b")
 
 	result = make([]Object, 0)
-	err = cli.Invoke("msp-service-template/object/all").
+	_, err = cli.Post("/object/all").
 		JsonResponseBody(&result).
 		Do(context.Background())
 	assert.NoError(err)
@@ -48,9 +47,9 @@ func TestGetAll(t *testing.T) {
 	assert.EqualValues(expected, result)
 }
 
-func TestGetById(t *testing.T) {
+func TestGetByIdHttp(t *testing.T) {
 	t.Parallel()
-	assert, testDb, cli := prepareTest(t)
+	assert, testDb, cli := prepareHttpTest(t)
 
 	testDb.Must().Exec("insert into object (id, name) values ($1, $2)", 1, "a")
 
@@ -59,53 +58,45 @@ func TestGetById(t *testing.T) {
 	}
 
 	// empty req body
-	result := Object{}
-	err := cli.Invoke("msp-service-template/object/get_by_id").
-		JsonResponseBody(&result).
+	resp, err := cli.Post("/object/get_by_id").
 		Do(context.Background())
-	assert.Error(err)
-	assert.EqualValues(codes.InvalidArgument, status.Code(err))
+	assert.NoError(err)
+	assert.EqualValues(http.StatusBadRequest, resp.StatusCode())
 
 	// id is required
-	result = Object{}
-	err = cli.Invoke("msp-service-template/object/get_by_id").
-		JsonResponseBody(&result).
+	_, err = cli.Post("/object/get_by_id").
 		JsonRequestBody(reqBody{}).
 		Do(context.Background())
-	assert.Error(err)
-	assert.EqualValues(codes.InvalidArgument, status.Code(err))
+	assert.NoError(err)
+	assert.EqualValues(http.StatusBadRequest, resp.StatusCode())
 
 	// not found
-	result = Object{}
-	err = cli.Invoke("msp-service-template/object/get_by_id").
-		JsonResponseBody(&result).
+	_, err = cli.Post("/object/get_by_id").
 		JsonRequestBody(reqBody{Id: 2}).
 		Do(context.Background())
-	assert.Error(err)
-	assert.EqualValues(codes.InvalidArgument, status.Code(err))
-	businessError := apierrors.FromError(err)
-	assert.NotNil(businessError)
-	assert.EqualValues(800, businessError.ErrorCode)
+	assert.NoError(err)
+	assert.EqualValues(http.StatusBadRequest, resp.StatusCode())
 
 	// happy path
-	result = Object{}
-	err = cli.Invoke("msp-service-template/object/get_by_id").
-		JsonResponseBody(&result).
+	okResult := Object{}
+	_, err = cli.Post("/object/get_by_id").
+		JsonResponseBody(&okResult).
 		JsonRequestBody(reqBody{Id: 1}).
 		Do(context.Background())
 	assert.NoError(err)
 
 	expected := Object{Name: "a"}
-	assert.EqualValues(expected, result)
+	assert.EqualValues(expected, okResult)
 }
 
-func prepareTest(t *testing.T) (*require.Assertions, *dbt.TestDb, *client.Client) {
+func prepareHttpTest(t *testing.T) (*require.Assertions, *dbt.TestDb, *client.Client) {
 	t.Helper()
 	test, assert := test.New(t)
 	testDb := dbt.New(test, dbx.WithMigrationRunner("../migrations", test.Logger()))
 
 	locator := assembly.NewLocator(testDb, test.Logger())
-	_, cli := grpct.TestServer(test, locator.Handler())
+	h := locator.Handlers(conf.Remote{})
+	_, cli := httpt.TestServer(test, h.HttpHandler)
 
 	return assert, testDb, cli
 }

@@ -27,6 +27,6 @@ func (m Manager) MessageTransaction(ctx context.Context, msgTx func(ctx context.
 	return m.db.RunInTransaction(ctx, func(ctx context.Context, tx *db.Tx) error {
 		locker := repository.NewLocker(tx)
 		msgRepo := repository.NewMessage(tx)
-		return msgTx(ctx, messageTx{locker, msgRepo})
+		return msgTx(ctx, messageTx{locker, msgRepo}) //nolint:typecheck
 	})
 }

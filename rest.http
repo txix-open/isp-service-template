@@ -1,0 +1,31 @@
+### All
+# # curl -X POST --location "http://localhost:9512/object/all"
+##    -H "Content-Type: application/json"
+POST {{proto}}{{host}}:{{gateway_port}}/object/all
+Content-Type: application/json
+### GetById
+# # curl -X POST --location "http://localhost:9512/object/get_by_id"
+##    -H "Content-Type: application/json"
+##    -d '{
+##            "id": 2
+##        }'
+POST {{proto}}{{host}}:{{gateway_port}}/object/get_by_id
+Content-Type: application/json
+
+{
+    "id": 44
+}
+### Send Message
+POST http://localhost:15672/api/exchanges/%2f/amq.direct/publish
+Authorization: Basic guest guest
+Content-Type: application/json
+
+{
+    "properties": {
+        "delivery_mode": 2
+    },
+    "routing_key": "queue",
+    "payload": "{{$random.alphabetic(32)}}",
+    "payload_encoding": "string"
+}
+###
