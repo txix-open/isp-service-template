@@ -29,8 +29,12 @@ func TestConsuming(t *testing.T) {
 			Dlq:   true,
 		},
 	}
-	brokerConfig := locator.BrokerConfig(config)
-	testMq.Upgrade(brokerConfig)
+	h := locator.Handlers(conf.Remote{Consumer: config})
+	testMq.Upgrade(grmqx.NewConfig(
+		config.Client.Url(),
+		grmqx.WithConsumers(h.RmqHandler),
+		grmqx.WithDeclarations(grmqx.TopologyFromConsumers(config.Config)),
+	))
 
 	// invalid message
 	testMq.Publish("", "test", amqp091.Publishing{Body: []byte("invalid json")})

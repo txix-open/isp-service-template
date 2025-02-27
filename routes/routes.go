@@ -4,6 +4,8 @@ import (
 	"github.com/txix-open/isp-kit/cluster"
 	"github.com/txix-open/isp-kit/grpc"
 	"github.com/txix-open/isp-kit/grpc/endpoint"
+	httpEndpoint "github.com/txix-open/isp-kit/http/endpoint"
+	"github.com/txix-open/isp-kit/http/router"
 
 	"msp-service-template/controller"
 )
@@ -22,6 +24,15 @@ func Handler(wrapper endpoint.Wrapper, c Controllers) *grpc.Mux {
 		muxer.Handle(descriptor.Path, wrapper.Endpoint(descriptor.Handler))
 	}
 	return muxer
+}
+
+func HttpHandler(wrapper httpEndpoint.Wrapper, c Controllers) *router.Router {
+	r := router.New()
+
+	r.POST("/object/all", wrapper.Endpoint(c.Object.All))
+	r.POST("/object/get_by_id", wrapper.Endpoint(c.Object.GetById))
+
+	return r
 }
 
 func endpointDescriptors(c Controllers) []cluster.EndpointDescriptor {

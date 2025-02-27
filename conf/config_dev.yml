@@ -1,6 +1,6 @@
 # TODO
 configServiceAddress:
-  ip: 10.2.7.20
+  ip: 127.0.0.1
   port: 9001
 grpcOuterAddress:
   #ip: 127.0.0.1
