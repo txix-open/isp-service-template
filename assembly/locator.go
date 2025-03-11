@@ -8,7 +8,9 @@ import (
 	"github.com/txix-open/isp-kit/grmqx"
 	"github.com/txix-open/isp-kit/grpc"
 	"github.com/txix-open/isp-kit/grpc/endpoint"
+	"github.com/txix-open/isp-kit/grpc/endpoint/grpclog"
 	httpEndpoint "github.com/txix-open/isp-kit/http/endpoint"
+	"github.com/txix-open/isp-kit/http/endpoint/httplog"
 	"github.com/txix-open/isp-kit/log"
 	"msp-service-template/conf"
 	"msp-service-template/controller"
@@ -48,10 +50,10 @@ func (l Locator) Handlers(conf conf.Remote) LocatorConfig {
 	c := routes.Controllers{
 		Object: objectController,
 	}
-	mapper := endpoint.DefaultWrapper(l.logger, endpoint.Log(l.logger, true))
+	mapper := endpoint.DefaultWrapper(l.logger, grpclog.Log(l.logger, true))
 	grpcHandler := routes.Handler(mapper, c)
 
-	wrapper := httpEndpoint.DefaultWrapper(l.logger, httpEndpoint.Log(l.logger, true))
+	wrapper := httpEndpoint.DefaultWrapper(l.logger, httplog.Log(l.logger, true))
 	httpHandler := routes.HttpHandler(wrapper, c)
 
 	txManager := transaction.NewManager(l.db)

@@ -33,7 +33,7 @@ type Assembly struct {
 func New(boot *bootstrap.Bootstrap) (*Assembly, error) {
 	logger := boot.App.Logger()
 
-	db := dbrx.New(dbx.WithMigrationRunner(boot.MigrationsDir, logger))
+	db := dbrx.New(logger, dbx.WithMigrationRunner(boot.MigrationsDir, logger))
 	mdmCli, err := client.Default()
 	if err != nil {
 		return nil, errors.WithMessage(err, "create mdm client")
