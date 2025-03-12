@@ -21,7 +21,7 @@ func (m *MessageData) Scan(src interface{}) error {
 	return json.Unmarshal(src.([]byte), m)
 }
 
-func (m MessageData) Value() (driver.Value, error) {
+func (m *MessageData) Value() (driver.Value, error) {
 	bytes, err := json.Marshal(m)
 	return driver.Value(bytes), err
 }

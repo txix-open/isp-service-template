@@ -1,7 +1,6 @@
 package tests_test
 
 import (
-	"context"
 	"net/http"
 	"testing"
 
@@ -26,7 +25,7 @@ func TestGetAllHttp(t *testing.T) {
 	result := make([]Object, 0)
 	_, err := cli.Post("/object/all").
 		JsonResponseBody(&result).
-		Do(context.Background())
+		Do(t.Context())
 	assert.NoError(err)
 	assert.Empty(result)
 
@@ -36,7 +35,7 @@ func TestGetAllHttp(t *testing.T) {
 	result = make([]Object, 0)
 	_, err = cli.Post("/object/all").
 		JsonResponseBody(&result).
-		Do(context.Background())
+		Do(t.Context())
 	assert.NoError(err)
 
 	expected := []Object{{
@@ -59,21 +58,21 @@ func TestGetByIdHttp(t *testing.T) {
 
 	// empty req body
 	resp, err := cli.Post("/object/get_by_id").
-		Do(context.Background())
+		Do(t.Context())
 	assert.NoError(err)
 	assert.EqualValues(http.StatusBadRequest, resp.StatusCode())
 
 	// id is required
 	_, err = cli.Post("/object/get_by_id").
 		JsonRequestBody(reqBody{}).
-		Do(context.Background())
+		Do(t.Context())
 	assert.NoError(err)
 	assert.EqualValues(http.StatusBadRequest, resp.StatusCode())
 
 	// not found
 	_, err = cli.Post("/object/get_by_id").
 		JsonRequestBody(reqBody{Id: 2}).
-		Do(context.Background())
+		Do(t.Context())
 	assert.NoError(err)
 	assert.EqualValues(http.StatusBadRequest, resp.StatusCode())
 
@@ -82,7 +81,7 @@ func TestGetByIdHttp(t *testing.T) {
 	_, err = cli.Post("/object/get_by_id").
 		JsonResponseBody(&okResult).
 		JsonRequestBody(reqBody{Id: 1}).
-		Do(context.Background())
+		Do(t.Context())
 	assert.NoError(err)
 
 	expected := Object{Name: "a"}

@@ -1,7 +1,6 @@
 package tests_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -24,7 +23,7 @@ func TestGetAllGrpc(t *testing.T) {
 	result := make([]Object, 0)
 	err := cli.Invoke("msp-service-template/object/all").
 		JsonResponseBody(&result).
-		Do(context.Background())
+		Do(t.Context())
 	assert.NoError(err)
 	assert.Empty(result)
 
@@ -34,7 +33,7 @@ func TestGetAllGrpc(t *testing.T) {
 	result = make([]Object, 0)
 	err = cli.Invoke("msp-service-template/object/all").
 		JsonResponseBody(&result).
-		Do(context.Background())
+		Do(t.Context())
 	assert.NoError(err)
 
 	expected := []Object{{
@@ -59,7 +58,7 @@ func TestGetByIdGrpc(t *testing.T) {
 	result := Object{}
 	err := cli.Invoke("msp-service-template/object/get_by_id").
 		JsonResponseBody(&result).
-		Do(context.Background())
+		Do(t.Context())
 	assert.Error(err)
 	assert.EqualValues(codes.InvalidArgument, status.Code(err))
 
@@ -68,7 +67,7 @@ func TestGetByIdGrpc(t *testing.T) {
 	err = cli.Invoke("msp-service-template/object/get_by_id").
 		JsonResponseBody(&result).
 		JsonRequestBody(reqBody{}).
-		Do(context.Background())
+		Do(t.Context())
 	assert.Error(err)
 	assert.EqualValues(codes.InvalidArgument, status.Code(err))
 
@@ -77,7 +76,7 @@ func TestGetByIdGrpc(t *testing.T) {
 	err = cli.Invoke("msp-service-template/object/get_by_id").
 		JsonResponseBody(&result).
 		JsonRequestBody(reqBody{Id: 2}).
-		Do(context.Background())
+		Do(t.Context())
 	assert.Error(err)
 	assert.EqualValues(codes.InvalidArgument, status.Code(err))
 	businessError := apierrors.FromError(err)
@@ -89,7 +88,7 @@ func TestGetByIdGrpc(t *testing.T) {
 	err = cli.Invoke("msp-service-template/object/get_by_id").
 		JsonResponseBody(&result).
 		JsonRequestBody(reqBody{Id: 1}).
-		Do(context.Background())
+		Do(t.Context())
 	assert.NoError(err)
 
 	expected := Object{Name: "a"}
