@@ -10,8 +10,6 @@ grpcInnerAddress:
   port: 9999
 moduleName: msp-service-template
 
-publicHttpServerPort: 9512
-
 logfile:
   path: /var/log/msp-service-template/runtime.log
   maxSizeMb: 512
