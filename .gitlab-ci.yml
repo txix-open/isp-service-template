@@ -1,0 +1,3 @@
+include:
+  - project: '$CI_PROJECT_PATH'
+    file: '/ci-isp-go-service.yml'
