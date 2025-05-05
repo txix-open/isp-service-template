@@ -21,8 +21,7 @@ var (
 // @host localhost:9000
 // @BasePath /api/msp-service-template
 
-//go:generate swag init --parseDependency
-//go:generate rm -f docs/swagger.json docs/docs.go
+//go:generate swag init --parseDependency --outputTypes yaml
 func main() {
 	boot := bootstrap.New(version, conf.Remote{}, routes.EndpointDescriptors())
 	app := boot.App
