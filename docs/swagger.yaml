@@ -1,4 +1,4 @@
-basePath: /api/msp-service-template
+basePath: /api/isp-service-template
 definitions:
   domain.ByIdRequest:
     properties:
@@ -31,7 +31,7 @@ info:
   description: Шаблон сервиса
   license:
     name: GNU GPL v3.0
-  title: msp-service-template
+  title: isp-service-template
   version: 1.0.0
 paths:
   /object/all:

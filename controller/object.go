@@ -6,8 +6,8 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/txix-open/isp-kit/grpc/apierrors"
-	"msp-service-template/domain"
-	"msp-service-template/entity"
+	"isp-service-template/domain"
+	"isp-service-template/entity"
 )
 
 type ObjectService interface {

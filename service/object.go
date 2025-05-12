@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
-	"msp-service-template/domain"
-	"msp-service-template/entity"
+	"isp-service-template/domain"
+	"isp-service-template/entity"
 )
 
 type Repo interface {

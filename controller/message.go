@@ -7,7 +7,7 @@ import (
 	"github.com/txix-open/grmq/consumer"
 	"github.com/txix-open/isp-kit/grmqx/handler"
 	"github.com/txix-open/isp-kit/json"
-	"msp-service-template/entity"
+	"isp-service-template/entity"
 )
 
 type MessageService interface {

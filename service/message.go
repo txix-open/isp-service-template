@@ -6,7 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/txix-open/isp-kit/log"
-	"msp-service-template/entity"
+	"isp-service-template/entity"
 )
 
 type MessageTransaction interface {

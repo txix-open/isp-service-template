@@ -10,8 +10,8 @@ import (
 	"github.com/txix-open/isp-kit/test"
 	"github.com/txix-open/isp-kit/test/dbt"
 	"github.com/txix-open/isp-kit/test/httpt"
-	"msp-service-template/assembly"
-	"msp-service-template/conf"
+	"isp-service-template/assembly"
+	"isp-service-template/conf"
 )
 
 type Object struct {

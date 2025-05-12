@@ -8,10 +8,10 @@ grpcOuterAddress:
 grpcInnerAddress:
   ip: 0.0.0.0
   port: 9999
-moduleName: msp-service-template
+moduleName: isp-service-template
 
 logfile:
-  path: /var/log/msp-service-template/runtime.log
+  path: /var/log/isp-service-template/runtime.log
   maxSizeMb: 512
   maxBackups: 4
   compress: true

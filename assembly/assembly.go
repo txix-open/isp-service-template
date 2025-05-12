@@ -6,7 +6,7 @@ import (
 	"github.com/txix-open/isp-kit/http"
 	"github.com/txix-open/isp-kit/observability/sentry"
 	"github.com/txix-open/isp-kit/rc"
-	"msp-service-template/conf"
+	"isp-service-template/conf"
 
 	"github.com/pkg/errors"
 	"github.com/txix-open/isp-kit/app"

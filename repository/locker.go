@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	prefix = "msp-service-template"
+	prefix = "isp-service-template"
 )
 
 type Locker struct {

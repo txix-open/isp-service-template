@@ -1,4 +1,4 @@
-module msp-service-template
+module isp-service-template
 
 go 1.24
 

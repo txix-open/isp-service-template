@@ -3,23 +3,23 @@ package main
 import (
 	"github.com/txix-open/isp-kit/bootstrap"
 	"github.com/txix-open/isp-kit/shutdown"
-	"msp-service-template/assembly"
-	"msp-service-template/conf"
-	"msp-service-template/routes"
+	"isp-service-template/assembly"
+	"isp-service-template/conf"
+	"isp-service-template/routes"
 )
 
 var (
 	version = "1.0.0"
 )
 
-// @title msp-service-template
+// @title isp-service-template
 // @version 1.0.0
 // @description Шаблон сервиса
 
 // @license.name GNU GPL v3.0
 
 // @host localhost:9000
-// @BasePath /api/msp-service-template
+// @BasePath /api/isp-service-template
 
 //go:generate swag init --parseDependency
 //go:generate rm -f docs/swagger.json docs/docs.go

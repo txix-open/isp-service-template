@@ -7,7 +7,7 @@ import (
 	httpEndpoint "github.com/txix-open/isp-kit/http/endpoint"
 	"github.com/txix-open/isp-kit/http/router"
 
-	"msp-service-template/controller"
+	"isp-service-template/controller"
 )
 
 type Controllers struct {
@@ -37,12 +37,12 @@ func HttpHandler(wrapper httpEndpoint.Wrapper, c Controllers) *router.Router {
 
 func endpointDescriptors(c Controllers) []cluster.EndpointDescriptor {
 	return []cluster.EndpointDescriptor{{
-		Path:             "msp-service-template/object/all",
+		Path:             "isp-service-template/object/all",
 		Inner:            false,
 		UserAuthRequired: false,
 		Handler:          c.Object.All,
 	}, {
-		Path:             "msp-service-template/object/get_by_id",
+		Path:             "isp-service-template/object/get_by_id",
 		Inner:            false,
 		UserAuthRequired: false,
 		Handler:          c.Object.GetById,

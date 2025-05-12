@@ -1,4 +1,4 @@
-# msp-service-template
+# isp-service-template
 
 ## Описание
 

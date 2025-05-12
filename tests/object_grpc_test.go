@@ -12,8 +12,8 @@ import (
 	"github.com/txix-open/isp-kit/test/grpct"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"msp-service-template/assembly"
-	"msp-service-template/conf"
+	"isp-service-template/assembly"
+	"isp-service-template/conf"
 )
 
 func TestGetAllGrpc(t *testing.T) {
@@ -21,7 +21,7 @@ func TestGetAllGrpc(t *testing.T) {
 	assert, testDb, cli := prepareGrpcTest(t)
 
 	result := make([]Object, 0)
-	err := cli.Invoke("msp-service-template/object/all").
+	err := cli.Invoke("isp-service-template/object/all").
 		JsonResponseBody(&result).
 		Do(t.Context())
 	assert.NoError(err)
@@ -31,7 +31,7 @@ func TestGetAllGrpc(t *testing.T) {
 	testDb.Must().Exec("insert into object (id, name) values ($1, $2)", 2, "b")
 
 	result = make([]Object, 0)
-	err = cli.Invoke("msp-service-template/object/all").
+	err = cli.Invoke("isp-service-template/object/all").
 		JsonResponseBody(&result).
 		Do(t.Context())
 	assert.NoError(err)
@@ -56,7 +56,7 @@ func TestGetByIdGrpc(t *testing.T) {
 
 	// empty req body
 	result := Object{}
-	err := cli.Invoke("msp-service-template/object/get_by_id").
+	err := cli.Invoke("isp-service-template/object/get_by_id").
 		JsonResponseBody(&result).
 		Do(t.Context())
 	assert.Error(err)
@@ -64,7 +64,7 @@ func TestGetByIdGrpc(t *testing.T) {
 
 	// id is required
 	result = Object{}
-	err = cli.Invoke("msp-service-template/object/get_by_id").
+	err = cli.Invoke("isp-service-template/object/get_by_id").
 		JsonResponseBody(&result).
 		JsonRequestBody(reqBody{}).
 		Do(t.Context())
@@ -73,7 +73,7 @@ func TestGetByIdGrpc(t *testing.T) {
 
 	// not found
 	result = Object{}
-	err = cli.Invoke("msp-service-template/object/get_by_id").
+	err = cli.Invoke("isp-service-template/object/get_by_id").
 		JsonResponseBody(&result).
 		JsonRequestBody(reqBody{Id: 2}).
 		Do(t.Context())
@@ -85,7 +85,7 @@ func TestGetByIdGrpc(t *testing.T) {
 
 	// happy path
 	result = Object{}
-	err = cli.Invoke("msp-service-template/object/get_by_id").
+	err = cli.Invoke("isp-service-template/object/get_by_id").
 		JsonResponseBody(&result).
 		JsonRequestBody(reqBody{Id: 1}).
 		Do(t.Context())

@@ -11,9 +11,9 @@ import (
 	"github.com/txix-open/isp-kit/test/dbt"
 	"github.com/txix-open/isp-kit/test/fake"
 	"github.com/txix-open/isp-kit/test/grmqt"
-	"msp-service-template/assembly"
-	"msp-service-template/conf"
-	"msp-service-template/entity"
+	"isp-service-template/assembly"
+	"isp-service-template/conf"
+	"isp-service-template/entity"
 )
 
 func TestConsuming(t *testing.T) {

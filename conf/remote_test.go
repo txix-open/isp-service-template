@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/txix-open/isp-kit/test/rct"
-	"msp-service-template/conf"
+	"isp-service-template/conf"
 )
 
 func TestDefaultRemoteConfig(t *testing.T) {

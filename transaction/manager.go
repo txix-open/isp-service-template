@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/txix-open/isp-kit/db"
-	"msp-service-template/repository"
-	"msp-service-template/service"
+	"isp-service-template/repository"
+	"isp-service-template/service"
 )
 
 type Manager struct {

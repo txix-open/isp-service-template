@@ -12,12 +12,12 @@ import (
 	"github.com/txix-open/isp-kit/grpc/endpoint"
 	httpEndpoint "github.com/txix-open/isp-kit/http/endpoint"
 	"github.com/txix-open/isp-kit/log"
-	"msp-service-template/conf"
-	"msp-service-template/controller"
-	"msp-service-template/repository"
-	"msp-service-template/routes"
-	"msp-service-template/service"
-	"msp-service-template/transaction"
+	"isp-service-template/conf"
+	"isp-service-template/controller"
+	"isp-service-template/repository"
+	"isp-service-template/routes"
+	"isp-service-template/service"
+	"isp-service-template/transaction"
 )
 
 type DB interface {
