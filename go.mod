@@ -7,9 +7,9 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/stretchr/testify v1.10.0
-	github.com/txix-open/grmq v1.7.0
-	github.com/txix-open/isp-kit v1.46.0
-	github.com/txix-open/jsonschema v1.2.0
+	github.com/txix-open/grmq v1.8.0
+	github.com/txix-open/isp-kit v1.48.0
+	github.com/txix-open/jsonschema v1.3.0
 	google.golang.org/grpc v1.71.1
 )
 
