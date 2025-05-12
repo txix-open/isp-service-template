@@ -1,0 +1,88 @@
+basePath: /api/isp-service-template
+definitions:
+  domain.ByIdRequest:
+    properties:
+      id:
+        type: integer
+    required:
+    - id
+    type: object
+  domain.Object:
+    properties:
+      name:
+        maxLength: 32
+        type: string
+    required:
+    - name
+    type: object
+  github_com_txix-open_isp-kit_grpc_apierrors.Error:
+    properties:
+      details:
+        additionalProperties: true
+        type: object
+      errorCode:
+        type: integer
+      errorMessage:
+        type: string
+    type: object
+host: localhost:9000
+info:
+  contact: {}
+  description: Шаблон сервиса
+  license:
+    name: GNU GPL v3.0
+  title: isp-service-template
+  version: 1.0.0
+paths:
+  /object/all:
+    post:
+      consumes:
+      - application/json
+      description: Возвращает список объектов
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Object'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_txix-open_isp-kit_grpc_apierrors.Error'
+      summary: Получить все объекты
+      tags:
+      - object
+  /object/get_by_id:
+    post:
+      consumes:
+      - application/json
+      description: '`errorCode: 800` - если объект не найден'
+      parameters:
+      - description: Идентификатор объекта
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.ByIdRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Object'
+        "400":
+          description: Объект не найден
+          schema:
+            $ref: '#/definitions/github_com_txix-open_isp-kit_grpc_apierrors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_txix-open_isp-kit_grpc_apierrors.Error'
+      summary: Получить объект по его идентификатору
+      tags:
+      - object
+swagger: "2.0"

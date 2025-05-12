@@ -1,0 +1,32 @@
+{
+  "database": {
+    "host": "{{ msp_pgsql_address }}",
+    "port": 5432,
+    "schema": "msp_service_template",
+    "database": "{{ msp_pgsql_name }}",
+    "username": "{{ msp_pgsql_user }}",
+    "password": "{{ msp_pgsql_password }}"
+  },
+  "logLevel": "debug",
+  "consumer": {
+    "client": {
+      "username": "{{ msp_rabbit_ext_user }}",
+      "host": "{{ msp_rabbit_ext_address }}",
+      "port": 5672,
+      "password": "{{ msp_rabbit_ext_password }}"
+    },
+    "config": {
+      "queue": "queue",
+      "dlq": true,
+      "prefetchCount": 32,
+      "concurrency": 32,
+      "retryPolicy": {
+        "finallyMoveToDlq": false,
+        "retries": [{
+          "delayInMs": 1000,
+          "maxAttempts": -1
+        }]
+      }
+    }
+  }
+}

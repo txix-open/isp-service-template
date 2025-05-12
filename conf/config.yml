@@ -1,0 +1,17 @@
+# TODO
+configServiceAddress:
+  ip: 127.0.0.1
+  port: 9001
+grpcOuterAddress:
+  #ip: 127.0.0.1
+  port: 9999
+grpcInnerAddress:
+  ip: 0.0.0.0
+  port: 9999
+moduleName: isp-service-template
+
+logfile:
+  path: /var/log/isp-service-template/runtime.log
+  maxSizeMb: 512
+  maxBackups: 4
+  compress: true
