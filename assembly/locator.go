@@ -1,16 +1,14 @@
 package assembly
 
 import (
-	"github.com/txix-open/isp-kit/grpc/endpoint/grpclog"
-	"github.com/txix-open/isp-kit/http/endpoint/httplog"
-	"net/http"
-
 	"github.com/txix-open/grmq/consumer"
 	"github.com/txix-open/isp-kit/db"
 	"github.com/txix-open/isp-kit/grmqx"
 	"github.com/txix-open/isp-kit/grpc"
 	"github.com/txix-open/isp-kit/grpc/endpoint"
+	"github.com/txix-open/isp-kit/grpc/endpoint/grpclog"
 	httpEndpoint "github.com/txix-open/isp-kit/http/endpoint"
+	"github.com/txix-open/isp-kit/http/endpoint/httplog"
 	"github.com/txix-open/isp-kit/log"
 	"isp-service-template/conf"
 	"isp-service-template/controller"
@@ -18,6 +16,7 @@ import (
 	"isp-service-template/routes"
 	"isp-service-template/service"
 	"isp-service-template/transaction"
+	"net/http"
 )
 
 type DB interface {
