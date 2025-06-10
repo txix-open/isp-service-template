@@ -15,3 +15,6 @@ logfile:
   maxSizeMb: 512
   maxBackups: 4
   compress: true
+
+metricsAutodiscovery:
+  enable: true
