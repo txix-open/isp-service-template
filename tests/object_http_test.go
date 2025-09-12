@@ -79,9 +79,10 @@ func TestGetByIdHttp(t *testing.T) {
 
 	// happy path
 	okResult := Object{}
-	resp, err = cli.Post("/object/get_by_id").
+	_, err = cli.Post("/object/get_by_id").
 		JsonResponseBody(&okResult).
 		JsonRequestBody(reqBody{Id: 1}).
+		StatusCodeToError().
 		Do(t.Context())
 	assert.NoError(err)
 
