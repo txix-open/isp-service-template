@@ -4,14 +4,15 @@ import (
 	"net/http"
 	"testing"
 
+	"isp-service-template/assembly"
+	"isp-service-template/conf"
+
 	"github.com/stretchr/testify/require"
 	"github.com/txix-open/isp-kit/dbx"
 	client "github.com/txix-open/isp-kit/http/httpcli"
 	"github.com/txix-open/isp-kit/test"
 	"github.com/txix-open/isp-kit/test/dbt"
 	"github.com/txix-open/isp-kit/test/httpt"
-	"isp-service-template/assembly"
-	"isp-service-template/conf"
 )
 
 type Object struct {
@@ -63,24 +64,25 @@ func TestGetByIdHttp(t *testing.T) {
 	assert.EqualValues(http.StatusBadRequest, resp.StatusCode())
 
 	// id is required
-	_, err = cli.Post("/object/get_by_id").
+	resp, err = cli.Post("/object/get_by_id").
 		JsonRequestBody(reqBody{}).
 		Do(t.Context())
 	assert.NoError(err)
 	assert.EqualValues(http.StatusBadRequest, resp.StatusCode())
 
 	// not found
-	_, err = cli.Post("/object/get_by_id").
+	resp, err = cli.Post("/object/get_by_id").
 		JsonRequestBody(reqBody{Id: 2}).
 		Do(t.Context())
 	assert.NoError(err)
-	assert.EqualValues(http.StatusBadRequest, resp.StatusCode())
+	assert.EqualValues(http.StatusInternalServerError, resp.StatusCode())
 
 	// happy path
 	okResult := Object{}
 	_, err = cli.Post("/object/get_by_id").
 		JsonResponseBody(&okResult).
 		JsonRequestBody(reqBody{Id: 1}).
+		StatusCodeToError().
 		Do(t.Context())
 	assert.NoError(err)
 
