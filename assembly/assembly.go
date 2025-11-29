@@ -3,10 +3,11 @@ package assembly
 import (
 	"context"
 
+	"isp-service-template/conf"
+
 	"github.com/txix-open/isp-kit/http"
 	"github.com/txix-open/isp-kit/observability/sentry"
 	"github.com/txix-open/isp-kit/rc"
-	"isp-service-template/conf"
 
 	"github.com/pkg/errors"
 	"github.com/txix-open/isp-kit/app"
