@@ -96,7 +96,7 @@ func prepareHttpTest(t *testing.T) (*require.Assertions, *dbt.TestDb, *client.Cl
 	testDb := dbt.New(test, dbx.WithMigrationRunner("../migrations", test.Logger()))
 
 	locator := assembly.NewLocator(testDb, test.Logger())
-	h := locator.Handlers(conf.Remote{})
+	h := locator.Handlers(conf.Config{})
 	_, cli := httpt.TestServer(test, h.HttpHandler)
 
 	return assert, testDb, cli

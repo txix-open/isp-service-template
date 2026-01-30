@@ -36,7 +36,7 @@ func main() {
 	app.AddRunners(assembly.Runners()...)
 	app.AddClosers(assembly.Closers()...)
 
-	cfg := conf.Remote{}
+	cfg := conf.Config{}
 	err = boot.ReadConfig(&cfg)
 	if err != nil {
 		boot.Fatal(err)

@@ -18,7 +18,7 @@ func init() {
 	})
 }
 
-type Remote struct {
+type Config struct {
 	Database dbx.Config
 	Consumer Consumer
 	LogLevel log.Level `schemaGen:"logLevel" schema:"Уровень логирования"`

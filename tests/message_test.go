@@ -4,6 +4,10 @@ import (
 	"testing"
 	"time"
 
+	"isp-service-template/assembly"
+	"isp-service-template/conf"
+	"isp-service-template/entity"
+
 	"github.com/rabbitmq/amqp091-go"
 	"github.com/txix-open/isp-kit/dbx"
 	"github.com/txix-open/isp-kit/grmqx"
@@ -11,9 +15,6 @@ import (
 	"github.com/txix-open/isp-kit/test/dbt"
 	"github.com/txix-open/isp-kit/test/fake"
 	"github.com/txix-open/isp-kit/test/grmqt"
-	"isp-service-template/assembly"
-	"isp-service-template/conf"
-	"isp-service-template/entity"
 )
 
 func TestConsuming(t *testing.T) {
@@ -29,7 +30,7 @@ func TestConsuming(t *testing.T) {
 			Dlq:   true,
 		},
 	}
-	h := locator.Handlers(conf.Remote{Consumer: config})
+	h := locator.Handlers(conf.Config{Consumer: config})
 	testMq.Upgrade(grmqx.NewConfig(
 		config.Client.Url(),
 		grmqx.WithConsumers(h.RmqHandler),

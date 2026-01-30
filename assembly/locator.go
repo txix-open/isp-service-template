@@ -1,6 +1,14 @@
 package assembly
 
 import (
+	"isp-service-template/conf"
+	"isp-service-template/controller"
+	"isp-service-template/repository"
+	"isp-service-template/routes"
+	"isp-service-template/service"
+	"isp-service-template/transaction"
+	"net/http"
+
 	"github.com/txix-open/grmq/consumer"
 	"github.com/txix-open/isp-kit/db"
 	"github.com/txix-open/isp-kit/grmqx"
@@ -10,13 +18,6 @@ import (
 	httpEndpoint "github.com/txix-open/isp-kit/http/endpoint"
 	"github.com/txix-open/isp-kit/http/endpoint/httplog"
 	"github.com/txix-open/isp-kit/log"
-	"isp-service-template/conf"
-	"isp-service-template/controller"
-	"isp-service-template/repository"
-	"isp-service-template/routes"
-	"isp-service-template/service"
-	"isp-service-template/transaction"
-	"net/http"
 )
 
 type DB interface {
@@ -42,7 +43,7 @@ func NewLocator(db DB, logger log.Logger) Locator {
 	}
 }
 
-func (l Locator) Handlers(conf conf.Remote) LocatorConfig {
+func (l Locator) Handlers(conf conf.Config) LocatorConfig {
 	objectRepo := repository.NewObject(l.db)
 	objectService := service.NewObject(objectRepo)
 	objectController := controller.NewObject(objectService)

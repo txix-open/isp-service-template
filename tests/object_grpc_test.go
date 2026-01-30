@@ -3,6 +3,9 @@ package tests_test
 import (
 	"testing"
 
+	"isp-service-template/assembly"
+	"isp-service-template/conf"
+
 	"github.com/stretchr/testify/require"
 	"github.com/txix-open/isp-kit/dbx"
 	"github.com/txix-open/isp-kit/grpc/apierrors"
@@ -12,8 +15,6 @@ import (
 	"github.com/txix-open/isp-kit/test/grpct"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"isp-service-template/assembly"
-	"isp-service-template/conf"
 )
 
 func TestGetAllGrpc(t *testing.T) {
@@ -101,7 +102,7 @@ func prepareGrpcTest(t *testing.T) (*require.Assertions, *dbt.TestDb, *client.Cl
 	testDb := dbt.New(test, dbx.WithMigrationRunner("../migrations", test.Logger()))
 
 	locator := assembly.NewLocator(testDb, test.Logger())
-	h := locator.Handlers(conf.Remote{})
+	h := locator.Handlers(conf.Config{})
 	_, cli := grpct.TestServer(test, h.GrpcHandler)
 
 	return assert, testDb, cli

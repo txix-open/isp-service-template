@@ -51,7 +51,7 @@ func New(boot *bootstrap.StandaloneBootstrap) (*Assembly, error) {
 	}, nil
 }
 
-func (a *Assembly) ReceiveConfig(shortTtlCtx context.Context, cfg conf.Remote) error {
+func (a *Assembly) ReceiveConfig(shortTtlCtx context.Context, cfg conf.Config) error {
 	a.logger.SetLevel(cfg.LogLevel)
 
 	err := a.db.Upgrade(shortTtlCtx, cfg.Database)
