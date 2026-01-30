@@ -10,6 +10,8 @@ grpcInnerAddress:
   port: 9999
 moduleName: isp-service-template
 
+remoteConfigReceiverTimeout: 5s
+
 logfile:
   path: /var/log/isp-service-template/runtime.log
   maxSizeMb: 512
