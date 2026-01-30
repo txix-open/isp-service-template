@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/txix-open/isp-kit/bootstrap"
-	"github.com/txix-open/isp-kit/shutdown"
+	"context"
 	"isp-service-template/assembly"
 	"isp-service-template/conf"
-	"isp-service-template/routes"
+
+	"github.com/txix-open/isp-kit/bootstrap"
+	"github.com/txix-open/isp-kit/shutdown"
 )
 
 var (
@@ -24,7 +25,7 @@ var (
 //go:generate swag init --parseDependency
 //go:generate rm -f docs/swagger.json docs/docs.go
 func main() {
-	boot := bootstrap.New(version, conf.Remote{}, routes.EndpointDescriptors())
+	boot := bootstrap.NewStandalone(version)
 	app := boot.App
 	logger := app.Logger()
 
@@ -34,6 +35,17 @@ func main() {
 	}
 	app.AddRunners(assembly.Runners()...)
 	app.AddClosers(assembly.Closers()...)
+
+	cfg := conf.Remote{}
+	err = boot.ReadConfig(&cfg)
+	if err != nil {
+		boot.Fatal(err)
+	}
+
+	err = assembly.ReceiveConfig(context.Background(), cfg)
+	if err != nil {
+		boot.Fatal(err)
+	}
 
 	shutdown.On(func() {
 		logger.Info(app.Context(), "starting shutdown")
