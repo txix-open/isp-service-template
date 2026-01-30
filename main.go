@@ -4,6 +4,7 @@ import (
 	"context"
 	"isp-service-template/assembly"
 	"isp-service-template/conf"
+	"time"
 
 	"github.com/txix-open/isp-kit/bootstrap"
 	"github.com/txix-open/isp-kit/shutdown"
@@ -11,6 +12,10 @@ import (
 
 var (
 	version = "1.0.0"
+)
+
+const (
+	receiveConfigTimeout = 5 * time.Second
 )
 
 // @title isp-service-template
@@ -42,7 +47,10 @@ func main() {
 		boot.Fatal(err)
 	}
 
-	err = assembly.ReceiveConfig(context.Background(), cfg)
+	ctx, cancel := context.WithTimeout(context.Background(), receiveConfigTimeout)
+	defer cancel()
+
+	err = assembly.ReceiveConfig(ctx, cfg)
 	if err != nil {
 		boot.Fatal(err)
 	}
