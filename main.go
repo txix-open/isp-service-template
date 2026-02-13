@@ -23,8 +23,7 @@ var (
 // @host localhost:9000
 // @BasePath /api/isp-service-template
 
-//go:generate swag init --parseDependency
-//go:generate rm -f docs/swagger.json docs/docs.go
+//go:generate swag init -pd -ot json -eot json
 func main() {
 	boot := bootstrap.New(version, conf.Remote{}, routes.EndpointDescriptors(), cluster.GrpcTransport)
 	app := boot.App
