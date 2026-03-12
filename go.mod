@@ -1,6 +1,6 @@
 module isp-service-template
 
-go 1.25
+go 1.26
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
@@ -8,7 +8,7 @@ require (
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/stretchr/testify v1.11.1
 	github.com/txix-open/grmq v1.9.0
-	github.com/txix-open/isp-kit v1.64.8
+	github.com/txix-open/isp-kit v1.64.11
 	github.com/txix-open/jsonschema v1.3.0
 	google.golang.org/grpc v1.75.1
 )
