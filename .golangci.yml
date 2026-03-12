@@ -18,6 +18,7 @@ linters:
     - varnamelen # очень индивидуально (db)
     - wsl # расставление пробелов очень индивидуально
     - wsl_v5 # расставление пробелов очень индивидуально
+    - godoclint # ругается на // nolint, не удобно
   settings:
     cyclop:
       max-complexity: 15 # по умолчанию 10 мало
@@ -54,6 +55,10 @@ linters:
       - linters:
           - wrapcheck
         path: transaction # транзакции прозрачны
+      - linters:
+          - unqueryvet
+          - prealloc
+        path: ".*_test\\.go$"
     paths:
       - third_party$
       - builtin$
