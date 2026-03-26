@@ -71,7 +71,8 @@ func (a *Assembly) ReceiveConfig(shortTtlCtx context.Context, remoteConfig []byt
 
 	a.grpcServer.Upgrade(handlers.GrpcHandler)
 
-	err = a.mqCli.Upgrade(a.boot.App.Context(),
+	appCtx := log.CopyValues(a.boot.App.Context(), shortTtlCtx)
+	err = a.mqCli.Upgrade(appCtx,
 		grmqx.NewConfig(
 			newCfg.Consumer.Client.Url(),
 			grmqx.WithConsumers(handlers.RmqHandler),
