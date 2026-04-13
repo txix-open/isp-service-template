@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"net/http"
+
 	"github.com/txix-open/isp-kit/cluster"
 	"github.com/txix-open/isp-kit/grpc"
 	"github.com/txix-open/isp-kit/grpc/endpoint"
@@ -41,10 +43,12 @@ func endpointDescriptors(c Controllers) []cluster.EndpointDescriptor {
 		Inner:            false,
 		UserAuthRequired: false,
 		Handler:          c.Object.All,
+		HttpMethod:       http.MethodPost,
 	}, {
 		Path:             "isp-service-template/object/get_by_id",
 		Inner:            false,
 		UserAuthRequired: false,
 		Handler:          c.Object.GetById,
+		HttpMethod:       http.MethodPost,
 	}}
 }
