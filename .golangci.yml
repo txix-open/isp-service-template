@@ -42,6 +42,9 @@ linters:
       disable:
         - compares
         - equal-values
+    gomoddirectives:
+      go-version-pattern: 1\.26
+      toolchain-forbidden: true
   exclusions:
     generated: lax
     presets:
