@@ -5,9 +5,9 @@ import (
 	"database/sql"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/pkg/errors"
 	"github.com/txix-open/isp-kit/db"
 	"github.com/txix-open/isp-kit/db/query"
+	"github.com/txix-open/isp-kit/errors"
 	"github.com/txix-open/isp-kit/metrics/sql_metrics"
 	"isp-service-template/entity"
 )

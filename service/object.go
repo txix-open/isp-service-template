@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/pkg/errors"
+	"github.com/txix-open/isp-kit/errors"
 	"isp-service-template/domain"
 	"isp-service-template/entity"
 )
