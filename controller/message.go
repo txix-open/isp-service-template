@@ -3,8 +3,8 @@ package controller
 import (
 	"context"
 
-	"github.com/pkg/errors"
 	"github.com/txix-open/grmq/consumer"
+	"github.com/txix-open/isp-kit/errors"
 	"github.com/txix-open/isp-kit/grmqx/handler"
 	"github.com/txix-open/isp-kit/json"
 	"isp-service-template/entity"
