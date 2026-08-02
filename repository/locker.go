@@ -31,9 +31,10 @@ func (l Locker) Lock(ctx context.Context, key string) error {
 	}
 	sum := hash.Sum32()
 
-	_, err = l.db.Exec(ctx, "SELECT pg_advisory_xact_lock($1)", sum)
+	query := "SELECT pg_advisory_xact_lock($1)"
+	_, err = l.db.Exec(ctx, query, sum)
 	if err != nil {
-		return errors.WithMessage(err, "pg acquire advisory lock")
+		return errors.WithMessagef(err, "exec: %s", query)
 	}
 	return nil
 }
@@ -49,9 +50,10 @@ func (l Locker) TryLock(ctx context.Context, key string) (bool, error) {
 	sum := hash.Sum32()
 
 	acquired := false
-	err = l.db.SelectRow(ctx, &acquired, "SELECT pg_try_advisory_xact_lock($1)", sum)
+	query := "SELECT pg_try_advisory_xact_lock($1)"
+	err = l.db.SelectRow(ctx, &acquired, query, sum)
 	if err != nil {
-		return false, errors.WithMessage(err, "pg try acquire advisory lock")
+		return false, errors.WithMessagef(err, "select row: %s", query)
 	}
 	return acquired, nil
 }
