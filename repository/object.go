@@ -4,12 +4,13 @@ import (
 	"context"
 	"database/sql"
 
+	"isp-service-template/entity"
+
 	"github.com/Masterminds/squirrel"
 	"github.com/txix-open/isp-kit/db"
 	"github.com/txix-open/isp-kit/db/query"
 	"github.com/txix-open/isp-kit/errors"
 	"github.com/txix-open/isp-kit/metrics/sql_metrics"
-	"isp-service-template/entity"
 )
 
 type Object struct {
@@ -25,16 +26,17 @@ func NewObject(db db.DB) Object {
 func (r Object) All(ctx context.Context) ([]entity.Object, error) {
 	ctx = sql_metrics.OperationLabelToContext(ctx, "Object.All")
 
-	arr := make([]entity.Object, 0)
-	err := r.db.Select(ctx, &arr,
-		`SELECT id, name 
+	query := `SELECT id, name 
 				FROM object 
-				ORDER BY id`)
+				ORDER BY id
+	`
+	result := make([]entity.Object, 0)
+	err := r.db.Select(ctx, &result, query)
 	if err != nil {
-		return nil, errors.WithMessage(err, "select objects")
+		return nil, errors.WithMessagef(err, "select: %s", query)
 	}
 
-	return arr, nil
+	return result, nil
 }
 
 func (r Object) Get(ctx context.Context, id int) (*entity.Object, error) {
@@ -55,7 +57,7 @@ func (r Object) Get(ctx context.Context, id int) (*entity.Object, error) {
 		return nil, entity.ErrObjectNotFound
 	}
 	if err != nil {
-		return nil, errors.WithMessage(err, "select object")
+		return nil, errors.WithMessagef(err, "select row: %s", query)
 	}
 
 	return &o, nil
