@@ -2,9 +2,9 @@
 
 ## Overview
 
-`isp-service-template` is a Go microservice template built on the `txix-open/isp-kit` framework. It implements **Clean Architecture** principles, providing a standardized structure where each layer has a strictly defined responsibility. The template accelerates microservice development by handling infrastructure concerns (logging, configuration, tracing, database connections, message queues), allowing developers to focus on business logic.
+This is a Go microservice template built on the `txix-open/isp-kit` framework. It implements **Clean Architecture** principles, providing a standardized structure where each layer has a strictly defined responsibility. The template accelerates microservice development by handling infrastructure concerns (logging, configuration, tracing, database connections, message queues), allowing developers to focus on business logic.
 
-The module name is `isp-service-template` and it depends on `github.com/txix-open/isp-kit v1.72.0`, which provides the bootstrap, cluster communication, database access (`dbrx`, `dbx`), gRPC/HTTP servers, RabbitMQ integration (`grmqx`), observability, and testing utilities.
+The framework (`isp-kit`) provides bootstrap, cluster communication, database access (`dbrx`, `dbx`), gRPC/HTTP servers, RabbitMQ integration (`grmqx`), observability, and testing utilities.
 
 ---
 
@@ -18,14 +18,12 @@ The module name is `isp-service-template` and it depends on `github.com/txix-ope
 
 **Key workflow:**
 1. Creates a `bootstrap.Bootstrap` instance via `bootstrap.New(version, conf.Remote{}, routes.EndpointDescriptors(), cluster.GrpcTransport)`. This initializes configuration loading, logging, Sentry integration, health checks, and cluster communication.
-2. Instantiates the `assembly.Assembly` by calling `assembly.New(boot)`, which sets up database clients, gRPC/HTTP servers, MDM client, and RabbitMQ client.
-3. Registers assembly runners (gRPC server listen/serve, cluster client) and closers (cluster, gRPC/HTTP shutdown, MQ close, DB close, MDM close) with the app.
+2. Instantiates the `assembly.Assembly` by calling `assembly.New(boot)`.
+3. Registers assembly runners (gRPC server listen/serve, cluster client) and closers (cluster, gRPC/HTTP shutdown, MQ close, DB close) with the app.
 4. Registers a shutdown handler via `shutdown.On()` that gracefully shuts down the app on signal.
 5. Calls `app.Run()` to start the application.
 
-The `version` variable (`"1.0.0"`) is passed to bootstrap for identification. Swagger annotations (`@title`, `@version`, `@description`, `@host`, `@BasePath`) are present for API documentation generation via `swag init`.
-
-**Philosophy:** `main.go` is intentionally thin. It delegates all infrastructure and business-logic initialization to the `assembly` package, following the **dependency inversion principle** — the entry point depends on abstractions (interfaces), not concrete implementations.
+**Philosophy:** `main.go` is intentionally thin. It delegates all infrastructure and business-logic initialization to the `assembly` package. The bootstrap framework handles configuration loading, logging setup, and cluster membership, while the assembly handles dependency wiring.
 
 ---
 
@@ -33,62 +31,42 @@ The `version` variable (`"1.0.0"`) is passed to bootstrap for identification. Sw
 
 **Location:** `assembly/`
 
-**Responsibility:** The assembly package is the composition root of the application. It is responsible for wiring together all infrastructure components and dependencies. It bridges the gap between the framework (`isp-kit/bootstrap`) and the application's internal layers (`repository`, `service`, `controller`).
+**Responsibility:** The composition root of the application. It is responsible for wiring together all infrastructure components and dependencies. It bridges the gap between the framework (`isp-kit/bootstrap`) and the application's internal layers (`repository`, `service`, `controller`).
 
 **Philosophy:** The assembly package follows the **composition root pattern**. It contains no business logic — its sole purpose is to construct and configure objects, then inject them into the appropriate layers. This keeps infrastructure concerns isolated from domain logic and makes the application testable by allowing easy substitution of real dependencies with test doubles.
 
 #### `assembly.go`
 
-**File responsibility:** Initializes and configures all infrastructure clients and servers, manages the application lifecycle, and handles remote configuration updates.
+**File responsibility:** Infrastructure initialization and lifecycle management. Initializes and configures all infrastructure clients and servers, manages the application lifecycle, and handles remote configuration updates.
 
-**Key components:**
-- `Assembly` struct holds references to: `bootstrap.Bootstrap`, `dbrx.Client` (database), `grpc.Server`, `http.Server`, MDM client, logger, and `grmqx.Client` (RabbitMQ).
-- `New(boot)` — Constructor that:
-  - Creates the database client (`dbrx.New`) with a migration runner.
-  - Creates the MDM client (`client.Default()`).
-  - Creates the RabbitMQ client (`grmqx.New`) wrapped with Sentry error logging.
-  - Registers health checks for `db` and `mq`.
-  - Initializes gRPC server (`grpc.DefaultServer()`), HTTP server (`http.NewServer(logger)`), and returns the `Assembly`.
-- `ReceiveConfig(ctx, remoteConfig)` — Hot-reloads remote configuration:
-  - Upgrades the remote config using `rc.Upgrade[conf.Remote]`, which merges new config with the existing one using a TTL-based diff mechanism.
-  - Updates the log level.
-  - Upgrades the database client with new connection parameters.
-  - Creates a new `Locator` and generates handlers from the updated config.
-  - Upgrades the gRPC server with the new handler mux.
-  - Upgrades the RabbitMQ client with new consumer configuration.
-  - Upgrades the HTTP server with the new handler.
-  - On any critical error during config upgrade, calls `boot.Fatal()` to terminate the application.
-- `Runners()` — Returns lifecycle runners:
-  - gRPC server's `ListenAndServe` on the bootstrap binding address.
-  - Cluster client's `Run` (for service discovery and remote config subscription).
-  - HTTP server runner is commented out (disabled by default).
-- `Closers()` — Returns lifecycle closers in reverse order: cluster client, gRPC server shutdown, HTTP server shutdown, RabbitMQ close, database close, MDM client close.
+**Key responsibilities:**
+- **Infrastructure client initialization:** Creates database clients, gRPC/HTTP servers and message queue clients and so on. Each client is configured with appropriate logging, metrics, and health check integration.
+- **Health check registration:** Registers infrastructure components (database, message queue) with the `HealthcheckRegistry` for liveness/readiness probes.
+- **Lifecycle management:** Implements `app.Runner` and `app.Closer` interfaces to manage startup and graceful shutdown of all infrastructure components. Runners are registered in dependency order; closers are registered in reverse order.
+- **Remote configuration hot-reload:** The `ReceiveConfig` method handles dynamic configuration updates pushed from a remote config service. It upgrades infrastructure clients (database, message queue, gRPC server) with new parameters without restarting the application. This enables runtime reconfiguration of connection strings, log levels, and consumer settings.
+- **Error handling:** Critical failures during initialization or config upgrade call `boot.Fatal()` to terminate the application immediately.
 
-**Philosophy:** The `Assembly` implements the `app.Runner` and `app.Closer` interfaces from `isp-kit/app`, providing a clean lifecycle management abstraction. The hot-reload mechanism (`ReceiveConfig`) allows the service to pick up configuration changes from `isp-config-service` without restarting, making it suitable for dynamic cloud environments.
+**Philosophy:** The `Assembly` struct encapsulates all infrastructure state. By implementing `app.Runner`/`app.Closer`, it integrates cleanly with the framework's lifecycle management. The hot-reload mechanism demonstrates the **configuration-as-a-service** pattern, where configuration is dynamically pushed from a central config service rather than being statically loaded at startup.
 
 #### `locator.go`
 
-**File responsibility:** Implements dependency injection between the application layers — building the object graph from repositories through services to controllers, and wiring them into transport handlers (gRPC, HTTP, RabbitMQ).
+**File responsibility:** Dependency injection and object graph construction. Implements dependency injection between the application layers — building the object graph from repositories through services to controllers, and wiring them into transport handlers (gRPC, HTTP, RabbitMQ).
 
-**Key components:**
-- `DB` interface — combines `db.DB` and `db.Transactional` interfaces, defining what the locator needs from the database layer.
-- `Locator` struct — holds `db` and `logger`, the minimal dependencies needed to construct the entire application layer graph.
-- `LocatorConfig` struct — the output of the locator: `HttpHandler` (HTTP router), `GrpcHandler` (gRPC mux), and `RmqHandler` (RabbitMQ consumer).
-- `NewLocator(db, logger)` — Creates a `Locator` with the given database and logger.
-- `Handlers(conf)` — The core method that builds the complete dependency graph:
-  1. **Repository layer:** Creates `repository.NewObject(db)` — the object repository.
-  2. **Service layer:** Creates `service.NewObject(objectRepo)` — the object service, which receives the repository interface.
-  3. **Controller layer:** Creates `controller.NewObject(objectService)` — the object controller, which receives the service interface.
-  4. **Routes assembly:** Packages controllers into `routes.Controllers{Object: objectController}`.
-  5. **gRPC handler:** Creates an `endpoint.DefaultWrapper` with gRPC logging, then builds the gRPC mux via `routes.Handler(mapper, c)`.
-  6. **HTTP handler:** Creates an `httpEndpoint.DefaultWrapper` with HTTP logging, then builds the HTTP router via `routes.HttpHandler(wrapper, c)`.
-  7. **Transaction management:** Creates `transaction.NewManager(l.db)` — the transaction manager wrapping the database.
-  8. **Message service:** Creates `service.NewMessage(logger, txManager)` — the message service, which receives the transaction manager (implementing `MessageTransactionRunner`).
-  9. **Message controller:** Creates `controller.NewMessage(msgService)`.
-  10. **RabbitMQ handler:** Wraps the message controller with `grmqx.NewResultHandler`, then creates the consumer via `conf.Consumer.Config.DefaultConsumer(handler, grmqx.ConsumerLog(...))`.
-  11. Returns `LocatorConfig` with all three transport handlers.
+**Key responsibilities:**
+- **Dependency injection container:** The `Locator` struct holds minimal infrastructure dependencies (database, logger) and provides a `Handlers(conf)` method that constructs the entire application layer graph.
+- **Layered dependency wiring:** Constructs objects in dependency order:
+  1. **Repository layer:** Creates repository instances, injecting the database interface.
+  2. **Service layer:** Creates service instances, injecting repository interfaces (defined as local interface types).
+  3. **Controller layer:** Creates controller instances, injecting service interfaces (defined as local interface types).
+- **Transport handler assembly:** Wraps controllers with middleware/logging and registers them with transport-specific handlers:
+  - gRPC: Creates an endpoint wrapper with gRPC logging, builds a gRPC mux mapping paths to controller methods.
+  - HTTP: Creates an HTTP endpoint wrapper with HTTP logging, builds a router mapping URL paths to controller methods.
+  - RabbitMQ: Wraps message controllers with result handlers (Ack/Retry/DLQ) and consumer logging.
+- **Transaction management integration:** Creates transaction managers and injects them into services that require transactional consistency.
 
-**Philosophy:** The locator implements the **dependency injection pattern** at the application level. Each layer depends only on interfaces defined within its own package or the layer below it (e.g., `service` defines `Repo` interface, `controller` defines `ObjectService` interface). This ensures loose coupling — the controller doesn't know about the repository implementation, and the service doesn't know about the repository's concrete type. The locator is the only place that knows about concrete implementations, making it easy to swap dependencies for testing.
+**Philosophy:** The locator implements the **dependency injection pattern** at the application level. Each layer defines its own interfaces for dependencies it needs (e.g., `service` defines `Repo` interface, `controller` defines `Service` interface). This ensures **loose coupling** — higher layers don't know about concrete implementations in lower layers. The locator is the only place that knows about concrete implementations, making it easy to swap dependencies for testing or to add new implementations.
+
+The separation of `assembly.go` (infrastructure) and `locator.go` (application DI) reflects the **separation of concerns** principle: infrastructure lifecycle management is distinct from application object graph construction.
 
 ---
 
@@ -98,13 +76,13 @@ The `version` variable (`"1.0.0"`) is passed to bootstrap for identification. Sw
 
 **Responsibility:** Defines the application's configuration structures and provides both local and remote configuration mechanisms.
 
-**Key files:**
-- `remote.go` — Defines the `Remote` struct (remote configuration from `isp-config-service`) with `Database`, `Consumer`, and `LogLevel` fields. The `Consumer` struct wraps `grmqx.Connection` and `grmqx.Consumer`. An `init()` function registers a custom JSON schema generator for the `LogLevel` field, producing an enum of `debug`, `info`, `warn`, `error`, `fatal`.
-- `remote_test.go` — Validates the `default_remote_config.json` against the `conf.Remote` struct using `rct.Test` (isp-kit's remote config testing utility).
-- `default_remote_config.json` — Default remote configuration template sent to `isp-config-service`. Contains database connection parameters (templated with `{{ msp_pgsql_* }}` variables), log level (`debug`), and RabbitMQ consumer configuration (queue name, DLQ enabled, prefetch count, concurrency, retry policy with infinite retries).
-- `config.yml` / `config_dev.yml` — Local configuration files. Define `configServiceAddress` (isp-config-service endpoint), `grpcOuterAddress`/`grpcInnerAddress` (gRPC bind/publish addresses), `moduleName`, `remoteConfigReceiverTimeout`, `logfile` (rotation settings), and `metricsAutodiscovery`.
+**Key components:**
+- **Remote configuration struct:** Defines the structure for configuration fetched from a remote config service (`isp-config-service`). Contains database connection parameters, message broker settings, log level, and consumer configuration. Custom JSON schema generators can be registered for fields requiring special validation (e.g., enum constraints for log levels).
+- **Local configuration files:** YAML files (`config.yml`, `config_dev.yml`) contain static local configuration such as the config service address, gRPC bind/publish addresses, module name, log file rotation settings, and metrics autodiscovery settings.
+- **Remote config template:** A JSON file (`default_remote_config.json`) serves as the default configuration template sent to the config service on first connection. Connection parameters are templated using environment variable placeholders.
+- **Configuration validation:** Tests validate that the default remote config matches the expected struct schema.
 
-**Philosophy:** Configuration is split into local (static, file-based) and remote (dynamic, fetched from `isp-config-service`). The remote config supports hot-reload via the `ReceiveConfig` mechanism, allowing runtime changes to database connections, log levels, and consumer settings without restarting the service.
+**Philosophy:** Configuration is split into local (static, file-based, environment-specific) and remote (dynamic, fetched from a config service). The remote config supports **hot-reload** via the `ReceiveConfig` mechanism in the assembly layer, allowing runtime changes to database connections, log levels, and consumer settings without restarting the service. This follows the **externalized configuration** pattern, where configuration is externalized from the application code and can be changed at runtime.
 
 ---
 
@@ -114,11 +92,12 @@ The `version` variable (`"1.0.0"`) is passed to bootstrap for identification. Sw
 
 **Responsibility:** Defines request/response structures and error codes that flow between the `controller` and `service` layers. This is the API contract layer.
 
-**Key files:**
-- `object.go` — Defines `ErrCodeObjectNotFound` (error code `800`) and the `Object` struct with a `Name` field (with validation tags: `required`, `max=32`).
-- `request.go` — Defines the `ByIdRequest` struct with an `Id` field (with validation tag: `required`).
+**Key components:**
+- **Request/Response DTOs:** Structs representing the data transferred between layers. These are distinct from `entity` structs, which represent persistence models.
+- **Error codes:** Numeric constants representing business error codes (e.g., `ErrCodeObjectNotFound = 800`) that are returned to clients when specific business conditions occur.
+- **Validation tags:** Struct fields include validation tags (e.g., `validate:"required"`, `validate:"required,max=32"`) that enable automatic request validation at the transport layer.
 
-**Philosophy:** The `domain` package contains only data structures and error codes — no business logic, no interfaces, no infrastructure concerns. It serves as the shared vocabulary between the transport layer (controller) and the business logic layer (service). Validation tags on struct fields enable automatic request validation at the controller/transport level.
+**Philosophy:** The `domain` package contains only data structures and error codes — no business logic, no interfaces, no infrastructure concerns. It serves as the **shared vocabulary** between the transport layer (controller) and the business logic layer (service). The separation between `domain` (API-facing) and `entity` (persistence-facing) models follows the **DTO pattern**, allowing each layer to have its own optimal representation of data. Validation tags at this level enable **fail-fast validation** before requests reach the service layer.
 
 ---
 
@@ -128,12 +107,14 @@ The `version` variable (`"1.0.0"`) is passed to bootstrap for identification. Sw
 
 **Responsibility:** Defines domain entities — the core data model of the application. These structures represent data as stored in the database or passed between layers.
 
-**Key files:**
-- `object.go` — Defines the `Object` entity with `Id` (string) and `Name` (string) fields. This is the persistence model, distinct from the `domain.Object` which is the API-facing model.
-- `message.go` — Defines the `Message` entity (`Id`, `Version`, `Data`) and `MessageData` struct (`Text` field). `MessageData` implements `sql.Scanner` and `driver.Valuer` interfaces for PostgreSQL JSON column serialization/deserialization using `isp-kit/json`.
-- `errors.go` — Defines sentinel errors: `ErrObjectNotFound` and `ErrMessageNotFound`, used by the repository layer to signal "not found" conditions that the service/controller layers can check with `errors.Is()`.
+**Key components:**
+- **Entity structs:** Core domain data structures. These are the persistence models used by repositories.
+- **Custom types with serialization:** Structs that implement `sql.Scanner` and `driver.Valuer` interfaces for database serialization/deserialization (e.g., JSON column types in PostgreSQL).
+- **Sentinel errors:** Domain-specific error values (e.g., `ErrObjectNotFound`, `ErrMessageNotFound`) that represent well-known failure conditions. These are checked using `errors.Is()` across layers.
 
-**Philosophy:** Entities are the purest representation of the domain data. They are independent of any specific storage technology or transport format. The `entity` layer sits at the center of the onion — both `repository` and `service` depend on it, but it depends on neither. Errors defined here are sentinel errors that allow precise error checking across layers using `errors.Is()`.
+**Philosophy:** Entities are the purest representation of the domain data. They are independent of any specific storage technology or transport format. The `entity` layer sits at the **center of the onion** — both `repository` and `service` depend on it, but it depends on neither. This is the **domain model** in Clean Architecture terms.
+
+Sentinel errors defined at this layer allow precise error checking across all layers using `errors.Is()`, without requiring higher layers to import infrastructure packages. This enables the **error wrapping pattern**: lower layers wrap errors with context while preserving the ability to check for specific sentinel errors at higher layers.
 
 ---
 
@@ -141,21 +122,18 @@ The `version` variable (`"1.0.0"`) is passed to bootstrap for identification. Sw
 
 **Location:** `repository/`
 
-**Responsibility:** The data access layer. Implements interfaces defined by the `service` layer and encapsulates all interactions with external data sources (PostgreSQL database, advisory locks).
+**Responsibility:** The data access layer. Implements interfaces defined by the `service` layer and encapsulates all interactions with external systems — databases, caches, message brokers, external HTTP APIs, file storage, Kafka producers, Redis clients, or any other I/O boundary.
 
-**Key files:**
-- `object.go` — `Object` repository struct wrapping `db.DB`. Implements:
-  - `All(ctx)` — SELECT all objects ordered by ID, returns `[]entity.Object`.
-  - `Get(ctx, id)` — SELECT a single object by ID using Squirrel query builder. Returns `entity.ErrObjectNotFound` when `sql.ErrNoRows` is encountered.
-- `message.go` — `Message` repository struct wrapping `db.DB`. Implements:
-  - `Insert(ctx, msg)` — INSERT a new message record.
-  - `GetLastVersion(ctx, id)` — SELECT the version of a message by ID. Returns `entity.ErrMessageNotFound` when not found.
-  - `UpdateById(ctx, msg)` — UPDATE message by ID using Squirrel.
-- `locker.go` — `Locker` struct wrapping `db.DB`. Implements PostgreSQL advisory locking:
-  - `Lock(ctx, key)` — Acquires an exclusive transaction-level advisory lock using `pg_advisory_xact_lock`. Key is hashed with FNV-1a and prefixed with `"isp-service-template"`.
-  - `TryLock(ctx, key)` — Attempts to acquire the lock non-blocking using `pg_try_advisory_xact_lock`.
+**Key components:**
+- **Repository structs:** Each struct wraps an external system client (database connection, HTTP client, cache client, message producer, etc.) and provides methods for data operations (CRUD, queries, locks, publishes). Methods accept `context.Context` as the first parameter for cancellation and tracing.
+- **Error translation:** Translates low-level external system errors (e.g., `sql.ErrNoRows`, HTTP 404, connection timeouts) into domain-specific sentinel errors (e.g., `entity.ErrObjectNotFound`). All other errors are wrapped with context using `errors.WithMessage`.
+- **Observability integration:** All external system operations are annotated with operation labels (e.g., `sql_metrics.OperationLabelToContext`), enabling per-operation metrics and tracing.
 
-**Philosophy:** Repositories implement the **repository pattern**. They depend only on the `db.DB` interface from `isp-kit/db` and the `entity` package — never on `service` or `controller`. All SQL operations are wrapped with `sql_metrics.OperationLabelToContext` for observability. Errors are wrapped with context using `errors.WithMessage`. The repository returns domain-specific sentinel errors (`entity.ErrObjectNotFound`, `entity.ErrMessageNotFound`) rather than raw database errors, allowing higher layers to handle them semantically.
+**Philosophy:** Repositories implement the **repository pattern** (for data stores) and the **gateway pattern** (for external service clients) as described in Domain-Driven Design and Clean Architecture. They depend only on the `entity` package and the framework's client interfaces — never on `service` or `controller`. This ensures the data access layer is completely decoupled from business logic and can be swapped (e.g., PostgreSQL → MySQL, REST API → gRPC client) without affecting the service layer.
+
+The repository returns domain-specific sentinel errors rather than raw infrastructure errors, allowing higher layers to handle errors semantically. All operations include observability instrumentation (metrics labels) for production monitoring. The use of query builders and typed clients prevents injection attacks and enables safe dynamic query/request construction.
+
+Different repository implementations can coexist: a SQL repository for database access, an HTTP gateway for external API calls, a Redis repository for caching — each wrapping its respective client but all conforming to the same interface pattern defined by the service layer.
 
 ---
 
@@ -165,20 +143,22 @@ The `version` variable (`"1.0.0"`) is passed to bootstrap for identification. Sw
 
 **Responsibility:** The business logic layer. Contains the core application logic, orchestrates repository calls, manages transactions, and transforms between `entity` (persistence model) and `domain` (API model) types.
 
-**Key files:**
-- `object.go` — `Object` service struct holding a `Repo` interface (defined locally: `All`, `Get`). Implements:
-  - `All(ctx)` — Calls `repo.All()`, maps `[]entity.Object` to `[]domain.Object` (stripping the `Id` field, keeping only `Name`).
-  - `Get(ctx, id)` — Calls `repo.Get()`, maps `entity.Object` to `domain.Object`. Errors are wrapped with `errors.WithMessagef`.
-- `message.go` — `Message` service struct holding a `log.Logger` and a `MessageTransactionRunner` interface. Implements:
-  - `Handle(ctx, msg)` — Wraps the entire message handling in a transaction via `txRunner.MessageTransaction()`. Inside the transaction:
-    - Acquires a lock on the message ID.
-    - Checks if a message with this ID exists (`GetLastVersion`).
-    - If not found (`entity.ErrMessageNotFound`), inserts a new message.
-    - If the incoming message's version is higher than the stored version, updates the record.
-    - If the incoming message's version is lower or equal, skips the update (idempotency).
-  - `handle(ctx, msg, tx)` — The inner function that performs the actual logic within the transaction, receiving a `MessageTransaction` interface (combining `Locker` and `Message` repository methods).
+**Key components:**
+- **Service structs:** Each struct holds dependencies (repositories, loggers, transaction managers, and **other services**) as interface types defined locally within the service file. This follows the **dependency inversion principle** — the service defines what it needs, not who provides it.
+- **Cross-service dependencies:** Services can depend on other services through locally-defined interfaces. For example, a `Message` service might depend on an `Object` service interface to validate references or trigger side effects. This enables **service composition** — complex business operations can orchestrate multiple services while maintaining loose coupling. The locator (in the assembly layer) is responsible for wiring these inter-service dependencies.
+- **Business logic methods:** Implement application use cases. These methods:
+  - Call repository methods to read/write data.
+  - Call methods on other service interfaces when cross-domain logic is needed.
+  - Transform between `entity` and `domain` types (e.g., stripping internal fields, combining data from multiple sources).
+  - Wrap errors with context using `errors.WithMessage` or `errors.WithMessagef`.
+  - Check for sentinel errors using `errors.Is()` to implement conditional logic (e.g., "if not found, insert; if found and newer, update").
+- **Transaction management:** Services that require multi-step database operations receive a transaction runner interface. They wrap their logic in a transaction callback, ensuring atomicity of related operations.
 
-**Philosophy:** The service layer defines its own interfaces for dependencies (`Repo` in `object.go`, `MessageTransaction`/`MessageTransactionRunner` in `message.go`), following the **dependency inversion principle**. It never imports `repository` or `controller` — only `entity` and `domain`. The `Message` service demonstrates **transactional consistency**: all operations (lock, read, write) happen within a single database transaction, ensuring atomicity. The version-based update logic provides **idempotency** — duplicate or out-of-order messages are handled gracefully.
+**Philosophy:** The service layer is the **use case layer** in Clean Architecture. It defines its own interfaces for dependencies, never importing `repository` or `controller` — only `entity` and `domain`. This ensures the business logic is completely independent of infrastructure and transport concerns.
+
+Services can depend on **each other** through interfaces defined at the service level. When service A needs functionality from service B, it defines a local interface specifying the methods it requires from B. The locator then injects B's implementation into A. This creates a **service composition graph** where complex workflows are built by orchestrating simpler services, while each service remains independently testable with mock dependencies.
+
+Error handling in the service layer follows the **error wrapping pattern**: errors from lower layers are wrapped with additional context but not translated to protocol-specific types. The service preserves the original error chain via `errors.Is()` compatibility, allowing higher layers to make translation decisions.
 
 ---
 
@@ -186,21 +166,21 @@ The `version` variable (`"1.0.0"`) is passed to bootstrap for identification. Sw
 
 **Location:** `controller/`
 
-**Responsibility:** The transport adapter layer. Handles incoming requests from HTTP, gRPC, and RabbitMQ, performs initial validation and error translation, and delegates to the `service` layer. Controllers are the boundary between external protocols and internal business logic.
+**Responsibility:** The transport adapter layer. Handles incoming requests from HTTP, gRPC, and message queues, performs initial validation and error translation, and delegates to the `service` layer. Controllers are the boundary between external protocols and internal business logic.
 
-**Key files:**
-- `object.go` — `Object` controller struct holding an `ObjectService` interface (`All`, `Get`). Implements:
-  - `All(ctx)` — Delegates directly to `service.All()`, returning `[]domain.Object`.
-  - `GetById(ctx, req)` — Delegates to `service.Get()`, with **error translation**:
-    - If the error is `entity.ErrObjectNotFound`, translates it to a gRPC business error with code `domain.ErrCodeObjectNotFound` (800) and a descriptive message.
-    - For any other error, wraps it as a gRPC internal service error via `apierrors.NewInternalServiceError`.
-  - Swagger annotations document the API endpoints (tags, summaries, request/response schemas, error codes).
-- `message.go` — `Message` controller struct holding a `MessageService` interface (`Handle`). Implements:
-  - `Handle(ctx, delivery)` — RabbitMQ message handler:
-    - Unmarshals the delivery body into `entity.Message`. On failure, returns `handler.MoveToDlq` (dead-letter queue).
-    - Calls `service.Handle()`. On failure, returns `handler.Retry` (message will be retried per the retry policy). On success, returns `handler.Ack()`.
+**Key components:**
+- **Controller structs:** Each struct holds a service interface (defined locally) as its dependency. The controller defines what service capabilities it needs, not which concrete service it uses.
+- **Request handling methods:** Methods that correspond to API endpoints or message handlers:
+  - **HTTP/gRPC handlers:** Accept request DTOs (from `domain`), delegate to service methods, and return response DTOs. Validation tags on request structs are enforced by the transport layer before the handler is called.
+  - **Message handlers:** Accept message delivery objects, unmarshal the payload into entity structs, delegate to service methods, and return protocol-specific results (Ack/Retry/DLQ).
+- **Error translation:** Converts internal errors into protocol-appropriate responses:
+  - **gRPC/HTTP:** Translates sentinel errors (e.g., `entity.ErrObjectNotFound`) into structured business errors with numeric error codes (e.g., `domain.ErrCodeObjectNotfound`). Other errors become internal service errors.
+  - **Message queues:** Determines message disposition — Ack (success), Retry (transient failure), or MoveToDlq (permanent failure like deserialization error).
+- **API documentation:** Swagger annotations on handler methods define the API contract (tags, summaries, request/response schemas, error codes).
 
-**Philosophy:** Controllers are **thin adapters**. They contain no business logic — only protocol-specific handling (JSON unmarshaling, error translation, HTTP/gRPC/RMQ response formatting). The controller defines interfaces for the services it depends on (`ObjectService`, `MessageService`), ensuring the transport layer is decoupled from the business logic implementation. Error handling at this layer translates internal domain errors into protocol-appropriate responses (gRPC `apierrors`, RMQ retry/DLQ decisions).
+**Philosophy:** Controllers are **thin adapters** implementing the **anti-corruption layer pattern**. They contain no business logic — only protocol-specific handling (JSON unmarshaling, error translation, response formatting). By defining their own service interfaces, controllers are decoupled from service implementations.
+
+Error translation happens exclusively at this layer, keeping the service layer transport-agnostic. The controller maps internal domain errors to protocol-appropriate responses: gRPC business errors with numeric codes for client-side handling, or message queue dispositions (Ack/Retry/DLQ) for asynchronous processing.
 
 ---
 
@@ -210,134 +190,114 @@ The `version` variable (`"1.0.0"`) is passed to bootstrap for identification. Sw
 
 **Responsibility:** Defines routing configuration for gRPC and HTTP transports, mapping endpoint paths to controller methods. Acts as the bridge between transport handlers and controllers.
 
-**Key files:**
-- `routes.go` — Defines:
-  - `Controllers` struct — holds references to all controllers (currently `Object`).
-  - `EndpointDescriptors()` — Returns a list of `cluster.EndpointDescriptor` for gRPC service discovery/registration. Each descriptor includes the path, auth requirements, HTTP method, and handler reference. Called from `main.go` during bootstrap.
-  - `Handler(wrapper, c)` — Builds a gRPC mux (`grpc.Mux`) by iterating over endpoint descriptors and registering each handler with the provided wrapper.
-  - `HttpHandler(wrapper, c)` — Builds an HTTP router (`router.Router`) with POST routes for `/object/all` and `/object/get_by_id`, each wrapped with the provided HTTP endpoint wrapper.
-  - `endpointDescriptors(c)` — Internal function returning the concrete endpoint list with paths like `"isp-service-template/object/all"` and `"isp-service-template/object/get_by_id"`.
+**Key components:**
+- **Controllers registry:** A struct that aggregates all controller instances, serving as a registry for available endpoints. New controllers are added by adding fields to this struct.
+- **Endpoint descriptors:** Functions that return lists of `cluster.EndpointDescriptor` objects, each describing a endpoint (path, HTTP method, auth requirements, handler reference). These descriptors are used by the framework for service discovery and cluster communication.
+- **Handler builders:** Functions that construct transport-specific handler objects:
+  - **gRPC handler:** Builds a gRPC mux by iterating over endpoint descriptors and registering each handler with a middleware wrapper.
+  - **HTTP handler:** Builds an HTTP router by mapping URL paths to controller methods, each wrapped with HTTP-specific middleware.
+- **Middleware wrappers:** Uses framework-provided wrappers (`endpoint.DefaultWrapper`, `httpEndpoint.DefaultWrapper`) that apply cross-cutting concerns (logging, metrics, tracing) uniformly to all endpoints.
 
-**Philosophy:** The routes package is the **transport configuration layer**. It knows about URL paths and HTTP methods but contains no business logic. The `Controllers` struct acts as a registry for all available controllers, making it easy to add new endpoints. The `EndpointDescriptors()` function (called from `main.go`) provides the cluster with service metadata for discovery. The wrapper pattern (`endpoint.Wrapper`, `httpEndpoint.Wrapper`) allows cross-cutting concerns (logging, metrics, tracing) to be applied uniformly.
+**Philosophy:** The routes package is the **transport configuration layer**. It knows about URL paths, HTTP methods, and gRPC service paths but contains no business logic. The `Controllers` struct acts as a **service registry**, making it easy to discover and add new endpoints.
 
----
-
-### `transaction` Package
-
-**Location:** `transaction/`
-
-**Responsibility:** Provides transaction management utilities that wrap repository operations within database transactions.
-
-**Key files:**
-- `manager.go` — Defines:
-  - `Manager` struct — holds a `db.Transactional` interface.
-  - `NewManager(db)` — Constructor.
-  - `messageTx` struct — embeds `repository.Locker` and `repository.Message`, combining them into a single `service.MessageTransaction` interface implementation.
-  - `MessageTransaction(ctx, fn)` — Executes the provided function within a database transaction (`db.RunInTransaction`). Inside the transaction, creates a `Locker` and `Message` repository from the transaction handle (`*db.Tx`), wraps them in a `messageTx` struct, and passes it to the callback function.
-
-**Philosophy:** The transaction manager implements the **transaction script pattern**. It provides a clean API for wrapping multi-step database operations in a single transaction, ensuring atomicity. By combining multiple repositories (`Locker` + `Message`) into a single `messageTx` struct, it allows the service layer to perform coordinated operations (lock + read + write) within one transaction. The service layer interacts with this through the `MessageTransactionRunner` interface, keeping it decoupled from the transaction implementation.
+The wrapper pattern allows cross-cutting concerns to be applied uniformly without polluting controller logic. The `EndpointDescriptors()` function (called from `main.go` during bootstrap) provides the cluster framework with service metadata for discovery and routing.
 
 ---
 
 ## Error Handling Flow
 
-The project implements a layered error handling strategy where errors are progressively translated from low-level infrastructure errors to high-level protocol-specific responses:
+The project implements a layered error handling strategy where errors are progressively translated from low-level infrastructure errors to high-level protocol-specific responses. This follows the **error wrapping and translation pattern**.
 
 ### Layer-by-Layer Error Flow
 
-1. **Repository layer** (`repository/`):
+1. **Repository layer:**
    - Wraps all errors with context using `errors.WithMessage(err, "operation description")`.
-   - Translates `sql.ErrNoRows` into domain-specific sentinel errors (`entity.ErrObjectNotFound`, `entity.ErrMessageNotFound`).
-   - Example: `repository/object.go:54` — `if errors.Is(err, sql.ErrNoRows) { return nil, entity.ErrObjectNotFound }`
+   - Translates infrastructure-specific errors (e.g., `sql.ErrNoRows`) into domain-specific **sentinel errors** (e.g., `entity.ErrObjectNotFound`, `entity.ErrMessageNotFound`).
+   - Returns sentinel errors that higher layers can check with `errors.Is()`.
 
-2. **Service layer** (`service/`):
+2. **Service layer:**
    - Wraps repository errors with additional context using `errors.WithMessage` or `errors.WithMessagef`.
-   - Checks for sentinel errors using `errors.Is()` to implement conditional logic (e.g., `service/message.go:53` — `if errors.Is(err, entity.ErrMessageNotFound)`).
-   - Does NOT translate errors to protocol-specific types — it propagates them up with context.
+   - Checks for sentinel errors using `errors.Is()` to implement conditional business logic (e.g., "if not found, insert new record; if version is newer, update").
+   - Does NOT translate errors to protocol-specific types — it propagates them up with context, preserving the error chain.
 
-3. **Controller layer** (`controller/`):
-   - Performs the final error translation based on the transport protocol.
-   - **Object controller** (`controller/object.go`):
-     - Checks for `entity.ErrObjectNotFound` and converts it to a gRPC business error: `apierrors.NewBusinessError(domain.ErrCodeObjectNotFound, "message", err)` — this produces a structured gRPC error with a business error code (800) that clients can programmatically handle.
-     - All other errors are wrapped as internal service errors: `apierrors.NewInternalServiceError(err)`.
-   - **Message controller** (`controller/message.go`):
-     - JSON unmarshal errors result in `handler.MoveToDlq` (message goes to dead-letter queue).
-     - Service errors result in `handler.Retry` (message will be retried per the configured retry policy).
-     - Success results in `handler.Ack()`.
+3. **Controller layer:**
+   - Performs the final **error translation** based on the transport protocol:
+   - **gRPC/HTTP controllers:** Maps sentinel errors to structured business errors with numeric error codes (e.g., `apierrors.NewBusinessError(code, message, err)`). All other errors become internal service errors (`apierrors.NewInternalServiceError(err)`).
+   - **Message queue controllers:** Determines message disposition:
+     - Deserialization errors → Move to dead-letter queue (DLQ).
+     - Service errors → Retry (per configured retry policy).
+     - Success → Acknowledge (Ack).
 
 ### Error Flow Summary
 
 ```
-Database (sql.ErrNoRows)
-  → Repository wraps with context + translates to entity.ErrObjectNotFound
+Infrastructure (sql.ErrNoRows, connection errors)
+  → Repository wraps with context + translates to sentinel errors
     → Service wraps with context, checks errors.Is for conditional logic
       → Controller translates to protocol-specific response:
-          gRPC: apierrors.NewBusinessError (code 800) or apierrors.NewInternalServiceError
-          RMQ:  handler.MoveToDlq / handler.Retry / handler.Ack
+          gRPC/HTTP: Business error (with code) or Internal error
+          RMQ:       DLQ / Retry / Ack
 ```
 
-**Key design principles:**
-- Errors are **wrapped with context** at each layer, preserving the original cause for debugging via `errors.Is()` and `errors.As()`.
-- **Sentinel errors** (`entity.ErrObjectNotFound`, `entity.ErrMessageNotFound`) are defined at the `entity` layer, allowing any layer to check for them without importing infrastructure packages.
-- **Protocol-specific translation** happens only at the controller layer, keeping the service layer transport-agnostic.
-- The gRPC wrapper (`endpoint.DefaultWrapper` with `grpclog.Log`) and HTTP wrapper (`httpEndpoint.DefaultWrapper` with `httplog.Log`) from `isp-kit` handle logging and serialization of these errors into the appropriate wire format.
+### Key Design Principles
+
+- **Error wrapping with context:** Errors are wrapped with descriptive context at each layer using `errors.WithMessage`, preserving the original cause for debugging via `errors.Is()` and `errors.As()`.
+- **Sentinel errors at the entity layer:** Well-known error conditions are defined as sentinel errors in the `entity` package, allowing any layer to check for them without importing infrastructure packages.
+- **Protocol-specific translation at the boundary:** Error-to-protocol translation happens only at the controller layer, keeping the service layer transport-agnostic and reusable across different transport mechanisms.
+- **Framework handling of serialization:** The gRPC/HTTP wrappers (`endpoint.DefaultWrapper`, `httpEndpoint.DefaultWrapper`) from `isp-kit` handle logging and serialization of translated errors into the appropriate wire format.
 
 ---
 
-## Request/Response Flow
+## Dependency Flow
 
-### HTTP/gRPC Request Flow (Object operations)
-
-```
-HTTP/gRPC request
-  → routes (path → controller method)
-    → controller (validation, error translation, delegates to service)
-      → service (business logic, calls repository, transforms entity ↔ domain)
-        → repository (SQL queries, returns entity + sentinel errors)
-          → database
-```
-
-### RabbitMQ Message Flow (Message processing)
-
-```
-RabbitMQ message
-  → controller.Handle (JSON unmarshal, delegates to service)
-    → service.Handle (transaction wrapper, calls transaction manager)
-      → transaction.Manager.MessageTransaction (opens DB transaction)
-        → service.handle (lock → check version → insert/update)
-          → repository (Locker + Message operations within transaction)
-            → database
-```
-
----
-
-## Dependency Graph
+The project follows a strict layered architecture with unidirectional dependencies:
 
 ```
 main
-  └── assembly
+  └── assembly (composition root, infrastructure lifecycle)
        ├── conf (configuration structures)
-       ├── repository (data access)
-       │    └── entity (data models, sentinel errors)
-       ├── service (business logic)
-       │    ├── entity (data models)
-       │    └── domain (request/response models)
-       ├── controller (transport adapters)
-       │    ├── domain (request/response models)
-       │    └── entity (sentinel errors)
-       ├── routes (routing configuration)
-       │    └── controller (controller interfaces)
-       └── transaction (transaction management)
-            ├── repository (Locker, Message)
-            └── service (MessageTransaction interface)
+       ├── locator (dependency injection / object graph)
+       │    ├── repository → entity (data access, persistence models)
+       │    ├── service → entity, domain (business logic)
+       │    ├── controller → domain, entity (transport adapters)
+       │    ├── routes → controller (routing configuration)
+       │    └── transaction → repository, service (transaction management)
+       └── conf (configuration)
 ```
 
-**Key dependency rules:**
+**Dependency rules:**
 - `main` depends on `assembly`, `conf`, `routes`.
-- `assembly` depends on `conf`, `repository`, `service`, `controller`, `routes`, `transaction`.
+- `assembly` depends on `conf`, `repository`, `service`, `controller`, `routes`, `transaction`, and `isp-kit` packages.
 - `repository` depends only on `entity` and `isp-kit/db`.
 - `service` depends on `entity` and `domain`.
 - `controller` depends on `domain` and `entity`.
 - `routes` depends on `controller`.
 - `transaction` depends on `repository` and `service`.
 - No circular dependencies exist between application packages.
+
+The dependency direction is always inward (toward the domain core). Infrastructure and transport layers depend on the domain, but the domain never depends on them. This is the **Clean Architecture** / **Onion Architecture** principle: the inner layers define interfaces, and the outer layers provide implementations.
+
+---
+
+## Testing Strategy
+
+The project includes integration tests in the `tests` package that exercise the full stack (database, transport, business logic) using test doubles provided by `isp-kit/test`:
+
+- **HTTP tests:** Use `httpt.TestServer` to spin up a test HTTP server with the real handler chain, and `dbt.New` for a test database with migrations.
+- **gRPC tests:** Use `grpct.TestServer` to spin up a test gRPC server with the real handler chain.
+- **Message queue tests:** Use `grmqt.New` to spin up a test RabbitMQ instance and publish/consume messages.
+- **Configuration tests:** Use `rct.Test` to validate remote configuration schemas.
+
+Tests construct the full dependency graph using `assembly.NewLocator`, ensuring that the same wiring used in production is exercised in tests. This validates the integration between all layers while maintaining test simplicity.
+
+---
+
+## Configuration Strategy
+
+The project uses a **dual configuration model**:
+
+1. **Local configuration** (`config.yml`, `config_dev.yml`): Static YAML files loaded at startup. Contains environment-specific settings like config service address, gRPC ports, log file paths, and metrics settings. The `config_dev.yml` variant is used when `APP_MODE=dev`.
+
+2. **Remote configuration** (`default_remote_config.json` + `conf.Remote` struct): Dynamic configuration fetched from `isp-config-service`. Contains database credentials, message broker settings, log level, and consumer configuration. Supports **hot-reload** — when the remote config service pushes updates, the `ReceiveConfig` method in the assembly layer upgrades all infrastructure clients (database, MQ, gRPC server) without restarting the application.
+
+Connection parameters in the remote config template use environment variable placeholders (e.g., `{{ msp_pgsql_address }}`), which are resolved by the config service at deployment time. This enables **12-factor app** compliance — configuration is externalized and environment-specific, with no secrets hardcoded in the application.
