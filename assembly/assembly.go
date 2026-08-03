@@ -67,15 +67,15 @@ func (a *Assembly) ReceiveConfig(shortTtlCtx context.Context, remoteConfig []byt
 	}
 
 	locator := NewLocator(a.db, sentry.WrapErrorLogger(a.logger, a.boot.SentryHub))
-	handlers := locator.Handlers(newCfg)
+	config := locator.Config(newCfg)
 
-	a.grpcServer.Upgrade(handlers.GrpcHandler)
+	a.grpcServer.Upgrade(config.GrpcHandler)
 
 	appCtx := log.CopyValues(a.boot.App.Context(), shortTtlCtx)
 	err = a.mqCli.Upgrade(appCtx,
 		grmqx.NewConfig(
 			newCfg.Consumer.Client.Url(),
-			grmqx.WithConsumers(handlers.RmqHandler),
+			grmqx.WithConsumers(config.RmqHandler),
 			grmqx.WithDeclarations(grmqx.TopologyFromConsumers(newCfg.Consumer.Config)),
 		),
 	)
@@ -83,7 +83,7 @@ func (a *Assembly) ReceiveConfig(shortTtlCtx context.Context, remoteConfig []byt
 		a.boot.Fatal(errors.WithMessage(err, "upgrade mq client"))
 	}
 
-	a.httpServer.Upgrade(handlers.HttpHandler)
+	a.httpServer.Upgrade(config.HttpHandler)
 
 	return nil
 }

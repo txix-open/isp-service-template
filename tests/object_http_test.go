@@ -21,6 +21,7 @@ type Object struct {
 
 func TestGetAllHttp(t *testing.T) {
 	t.Parallel()
+
 	assert, testDb, cli := prepareHttpTest(t)
 
 	result := make([]Object, 0)
@@ -49,13 +50,10 @@ func TestGetAllHttp(t *testing.T) {
 
 func TestGetByIdHttp(t *testing.T) {
 	t.Parallel()
+
 	assert, testDb, cli := prepareHttpTest(t)
 
 	testDb.Must().Exec("insert into object (id, name) values ($1, $2)", 1, "a")
-
-	type reqBody struct {
-		Id int
-	}
 
 	// empty req body
 	resp, err := cli.Post("/object/get_by_id").
@@ -92,12 +90,13 @@ func TestGetByIdHttp(t *testing.T) {
 
 func prepareHttpTest(t *testing.T) (*require.Assertions, *dbt.TestDb, *client.Client) {
 	t.Helper()
-	test, assert := test.New(t)
+
+	test, require := test.New(t)
 	testDb := dbt.New(test, dbx.WithMigrationRunner("../migrations", test.Logger()))
 
 	locator := assembly.NewLocator(testDb, test.Logger())
-	h := locator.Handlers(conf.Remote{})
-	_, cli := httpt.TestServer(test, h.HttpHandler)
+	config := locator.Config(conf.Remote{})
+	_, cli := httpt.TestServer(test, config.HttpHandler)
 
-	return assert, testDb, cli
+	return require, testDb, cli
 }
