@@ -4,6 +4,10 @@ import (
 	"testing"
 	"time"
 
+	"isp-service-template/assembly"
+	"isp-service-template/conf"
+	"isp-service-template/entity"
+
 	"github.com/rabbitmq/amqp091-go"
 	"github.com/txix-open/isp-kit/dbx"
 	"github.com/txix-open/isp-kit/grmqx"
@@ -11,29 +15,28 @@ import (
 	"github.com/txix-open/isp-kit/test/dbt"
 	"github.com/txix-open/isp-kit/test/fake"
 	"github.com/txix-open/isp-kit/test/grmqt"
-	"isp-service-template/assembly"
-	"isp-service-template/conf"
-	"isp-service-template/entity"
 )
 
 func TestConsuming(t *testing.T) {
 	t.Parallel()
+
 	test, require := test.New(t)
 	testMq := grmqt.New(test)
 	testDb := dbt.New(test, dbx.WithMigrationRunner("../migrations", test.Logger()))
 
 	locator := assembly.NewLocator(testDb, test.Logger())
-	config := conf.Consumer{
+	consumerConfig := conf.Consumer{
 		Config: grmqx.Consumer{
 			Queue: "test",
 			Dlq:   true,
 		},
 	}
-	h := locator.Handlers(conf.Remote{Consumer: config})
+
+	config := locator.Config(conf.Remote{Consumer: consumerConfig})
 	testMq.Upgrade(grmqx.NewConfig(
-		config.Client.Url(),
-		grmqx.WithConsumers(h.RmqHandler),
-		grmqx.WithDeclarations(grmqx.TopologyFromConsumers(config.Config)),
+		consumerConfig.Client.Url(),
+		grmqx.WithConsumers(config.RmqHandler),
+		grmqx.WithDeclarations(grmqx.TopologyFromConsumers(consumerConfig.Config)),
 	))
 
 	// invalid message
