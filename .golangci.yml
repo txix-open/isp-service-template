@@ -20,7 +20,11 @@ linters:
     - wsl_v5 # расставление пробелов очень индивидуально
     - godoclint # ругается на // nolint, не удобно
     - prealloc # слишком аггресивный, в большинстве случаев не требуется
+    - gomodguard # deprecated
   settings:
+    exhaustruct_v5:
+      allow-empty: true
+      explicit-mode: true
     cyclop:
       max-complexity: 15 # по умолчанию 10 мало
     funlen:
