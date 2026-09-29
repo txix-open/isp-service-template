@@ -21,6 +21,7 @@ linters:
     - godoclint # ругается на // nolint, не удобно
     - prealloc # слишком аггресивный, в большинстве случаев не требуется
     - gomodguard # deprecated
+    - goconst # слишком агрессивный
   settings:
     exhaustruct_v5:
       allow-empty: true
@@ -29,8 +30,6 @@ linters:
       max-complexity: 15 # по умолчанию 10 мало
     funlen:
       lines: 80
-    goconst:
-      ignore-tests: true # тестовые фикстуры не выносим в константы
     lll:
       line-length: 150
     revive:
