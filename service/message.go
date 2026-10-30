@@ -33,7 +33,7 @@ func NewMessage(logger log.Logger, txRunner MessageTransactionRunner) *Message {
 }
 
 func (m Message) Handle(ctx context.Context, msg entity.Message) error {
-	ctx = log.ToContext(ctx, log.Int("message_id", int(msg.Id)))
+	ctx = log.ToContext(ctx, log.Int64("message_id", msg.Id))
 	err := m.txRunner.MessageTransaction(ctx, func(ctx context.Context, tx MessageTransaction) error {
 		return m.handle(ctx, msg, tx)
 	})
