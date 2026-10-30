@@ -25,7 +25,12 @@ var (
 
 //go:generate swag init -pd -ot json -eot json
 func main() {
-	boot := bootstrap.New(version, conf.Remote{}, routes.EndpointDescriptors(), cluster.GrpcTransport)
+	boot := bootstrap.New(
+		version,
+		conf.Remote{},
+		cluster.Endpoints(routes.EndpointDescriptors()),
+		cluster.GrpcTransport,
+	)
 	app := boot.App
 	logger := app.Logger()
 
