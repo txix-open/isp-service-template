@@ -5,98 +5,99 @@ import (
 	"testing"
 
 	"isp-service-template/assembly"
-	"isp-service-template/conf"
+	"isp-service-template/domain"
 
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 	"github.com/txix-open/isp-kit/dbx"
-	client "github.com/txix-open/isp-kit/http/httpcli"
+	"github.com/txix-open/isp-kit/http/httpcli"
 	"github.com/txix-open/isp-kit/test"
 	"github.com/txix-open/isp-kit/test/dbt"
 	"github.com/txix-open/isp-kit/test/httpt"
 )
 
-type Object struct {
-	Name string
+type objectHttpSuite struct {
+	suite.Suite
+
+	db  *dbt.TestDb
+	api *httpcli.Client
 }
 
-func TestGetAllHttp(t *testing.T) {
+func TestObjectHttp(t *testing.T) {
 	t.Parallel()
-
-	assert, testDb, cli := prepareHttpTest(t)
-
-	result := make([]Object, 0)
-	_, err := cli.Post("/object/all").
-		JsonResponseBody(&result).
-		Do(t.Context())
-	assert.NoError(err)
-	assert.Empty(result)
-
-	testDb.Must().Exec("insert into object (id, name) values ($1, $2)", 1, "a")
-	testDb.Must().Exec("insert into object (id, name) values ($1, $2)", 2, "b")
-
-	result = make([]Object, 0)
-	_, err = cli.Post("/object/all").
-		JsonResponseBody(&result).
-		Do(t.Context())
-	assert.NoError(err)
-
-	expected := []Object{{
-		Name: "a",
-	}, {
-		Name: "b",
-	}}
-	assert.EqualValues(expected, result)
+	suite.Run(t, &objectHttpSuite{})
 }
 
-func TestGetByIdHttp(t *testing.T) {
-	t.Parallel()
+func (s *objectHttpSuite) SetupTest() {
+	ispTest, _ := test.New(s.T())
+	s.db = dbt.New(ispTest, dbx.WithMigrationRunner("../migrations", ispTest.Logger()))
 
-	assert, testDb, cli := prepareHttpTest(t)
+	locator := assembly.NewLocator(s.db, ispTest.Logger())
+	locatorCfg := locator.Config(getRemoteConfig())
 
-	testDb.Must().Exec("insert into object (id, name) values ($1, $2)", 1, "a")
+	_, s.api = httpt.TestServer(ispTest, locatorCfg.HttpHandler)
+}
 
-	// empty req body
-	resp, err := cli.Post("/object/get_by_id").
-		Do(t.Context())
-	assert.NoError(err)
-	assert.EqualValues(http.StatusBadRequest, resp.StatusCode())
-
-	// id is required
-	resp, err = cli.Post("/object/get_by_id").
-		JsonRequestBody(reqBody{}).
-		Do(t.Context())
-	assert.NoError(err)
-	assert.EqualValues(http.StatusBadRequest, resp.StatusCode())
-
-	// not found
-	resp, err = cli.Post("/object/get_by_id").
-		JsonRequestBody(reqBody{Id: 2}).
-		Do(t.Context())
-	assert.NoError(err)
-	assert.EqualValues(http.StatusInternalServerError, resp.StatusCode())
-
-	// happy path
-	okResult := Object{}
-	_, err = cli.Post("/object/get_by_id").
-		JsonResponseBody(&okResult).
-		JsonRequestBody(reqBody{Id: 1}).
+func (s *objectHttpSuite) Test_GetAll_Empty() {
+	result := make([]domain.Object, 0)
+	err := s.api.Post("/isp-service-template/object/all").
+		JsonResponseBody(&result).
 		StatusCodeToError().
-		Do(t.Context())
-	assert.NoError(err)
-
-	expected := Object{Name: "a"}
-	assert.EqualValues(expected, okResult)
+		DoWithoutResponse(s.T().Context())
+	s.Require().NoError(err)
+	s.Require().Empty(result)
 }
 
-func prepareHttpTest(t *testing.T) (*require.Assertions, *dbt.TestDb, *client.Client) {
-	t.Helper()
+func (s *objectHttpSuite) Test_GetAll_HappyPath() {
+	s.db.Must().Exec("insert into object (id, name) values ($1, $2)", 1, "a")
+	s.db.Must().Exec("insert into object (id, name) values ($1, $2)", 2, "b")
 
-	test, require := test.New(t)
-	testDb := dbt.New(test, dbx.WithMigrationRunner("../migrations", test.Logger()))
+	result := make([]domain.Object, 0)
+	err := s.api.Post("/isp-service-template/object/all").
+		JsonResponseBody(&result).
+		StatusCodeToError().
+		DoWithoutResponse(s.T().Context())
+	s.Require().NoError(err)
 
-	locator := assembly.NewLocator(testDb, test.Logger())
-	config := locator.Config(conf.Remote{})
-	_, cli := httpt.TestServer(test, config.HttpHandler)
+	expected := []domain.Object{{Name: "a"}, {Name: "b"}}
+	s.Require().EqualValues(expected, result)
+}
 
-	return require, testDb, cli
+func (s *objectHttpSuite) Test_GetById_EmptyBody() {
+	err := s.api.Post("/isp-service-template/object/get_by_id").
+		StatusCodeToError().
+		DoWithoutResponse(s.T().Context())
+	expectApiError(s.Require(), err, http.StatusBadRequest, 400)
+}
+
+func (s *objectHttpSuite) Test_GetById_MissingId() {
+	err := s.api.Post("/isp-service-template/object/get_by_id").
+		JsonRequestBody(domain.ByIdRequest{}).
+		StatusCodeToError().
+		DoWithoutResponse(s.T().Context())
+	expectApiError(s.Require(), err, http.StatusBadRequest, 400)
+}
+
+func (s *objectHttpSuite) Test_GetById_NotFound() {
+	s.db.Must().Exec("insert into object (id, name) values ($1, $2)", 1, "a")
+
+	err := s.api.Post("/isp-service-template/object/get_by_id").
+		JsonRequestBody(domain.ByIdRequest{Id: 2}).
+		StatusCodeToError().
+		DoWithoutResponse(s.T().Context())
+	expectApiError(s.Require(), err, http.StatusInternalServerError, 900)
+}
+
+func (s *objectHttpSuite) Test_GetById_HappyPath() {
+	s.db.Must().Exec("insert into object (id, name) values ($1, $2)", 1, "a")
+
+	result := domain.Object{}
+	err := s.api.Post("/isp-service-template/object/get_by_id").
+		JsonRequestBody(domain.ByIdRequest{Id: 1}).
+		JsonResponseBody(&result).
+		StatusCodeToError().
+		DoWithoutResponse(s.T().Context())
+	s.Require().NoError(err)
+
+	expected := domain.Object{Name: "a"}
+	s.Require().Equal(expected, result)
 }
