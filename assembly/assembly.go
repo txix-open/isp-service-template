@@ -96,14 +96,14 @@ func (a *Assembly) Runners() []app.Runner {
 		app.RunnerFunc(func(ctx context.Context) error {
 			err := a.grpcServer.ListenAndServe(a.boot.BindingAddress)
 			if err != nil {
-				return errors.WithMessage(err, "listen ans serve grpc grpcServer")
+				return errors.WithMessage(err, "listen and serve grpc server")
 			}
 			return nil
 		}),
 		// app.RunnerFunc(func(ctx context.Context) error {
 		// 	err := a.httpServer.ListenAndServe(a.boot.BindingAddress)
 		// 	if err != nil {
-		// 		return errors.WithMessage(err, "listen ans serve http httpServer")
+		// 		return errors.WithMessage(err, "listen and serve http server")
 		// 	}
 		// 	return nil
 		// }),

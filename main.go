@@ -16,16 +16,21 @@ var (
 
 // @title isp-service-template
 // @version 1.0.0
-// @description Шаблон сервиса
+//	@description.markdown
 
 // @license.name GNU GPL v3.0
 
 // @host localhost:9000
 // @BasePath /api/isp-service-template
 
-//go:generate swag init -pd -ot json -eot json
+//go:generate swag init -pd -ot json -eot json -md ./docs
 func main() {
-	boot := bootstrap.New(version, conf.Remote{}, routes.EndpointDescriptors(), cluster.GrpcTransport)
+	boot := bootstrap.New(
+		version,
+		conf.Remote{},
+		cluster.Endpoints(routes.EndpointDescriptors()),
+		cluster.GrpcTransport,
+	)
 	app := boot.App
 	logger := app.Logger()
 

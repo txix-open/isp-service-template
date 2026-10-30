@@ -43,7 +43,7 @@ func NewLocator(db DB, logger log.Logger) Locator {
 	}
 }
 
-func (l Locator) Config(conf conf.Remote) LocatorConfig {
+func (l Locator) Config(cfg conf.Remote) LocatorConfig {
 	objectRepo := repository.NewObject(l.db)
 	objectService := service.NewObject(objectRepo)
 	objectController := controller.NewObject(objectService)
@@ -61,7 +61,7 @@ func (l Locator) Config(conf conf.Remote) LocatorConfig {
 	msgController := controller.NewMessage(msgService)
 
 	handler := grmqx.NewResultHandler(l.logger, msgController)
-	rmqHandler := conf.Consumer.Config.DefaultConsumer(handler, grmqx.ConsumerLog(l.logger, true))
+	rmqHandler := cfg.Consumer.Config.DefaultConsumer(handler, grmqx.ConsumerLog(l.logger, true))
 
 	return LocatorConfig{
 		HttpHandler: httpHandler,
